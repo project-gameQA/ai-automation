@@ -1,0 +1,222 @@
+GAME QA AUTOMATION WITH AI - NOTES
+====================================
+
+
+PART 1: GETTING STARTED (supervised/unsupervised, generalization, bot architecture, real examples)
+======================================================================================================
+
+Good questions, and the frustration in your original message tells me the vague "AI can help
+with QA" content you'd been finding is useless for actually building this. Here are real specifics.
+
+1. SUPERVISED OR UNSUPERVISED?
+-------------------------------
+Neither is really the right frame. Game QA bots use a mix of three different ML paradigms
+depending on what part of the pipeline you're building:
+
+- Reinforcement learning (RL) - for the bot that actually plays the game. No labeled data;
+  the agent explores and gets a reward signal (reached checkpoint = +1, died in a way that
+  shouldn't be possible = flag it). This is the dominant approach for "does this level work"
+  testing.
+
+- Imitation learning - supervised, but on human gameplay recordings instead of labeled
+  examples. modl.ai trained bots by collecting real player data, gathering over 48 hours of
+  gameplay from one title to capture strategies, movement patterns, and combat decisions.
+  This is how you get bots that behave "humanlike" rather than optimally.
+
+- LLM agents (no training at all) - the newest approach, and honestly the most practical for
+  a small team. Instead of training a model, you give a general-purpose LLM the game state as
+  text/structured data each turn and let it reason about what to do next (ReAct-style loop).
+  Zero training cost, but you pay per-inference API costs and it's slower per-action than a
+  trained policy.
+
+Separately, supervised learning shows up for the DETECTION side - e.g., a CV classifier
+trained on labeled screenshots to recognize "textures missing," "UI overlapping," "player
+stuck in geometry." That's a distinct sub-problem from the "bot that plays" problem.
+
+Most real products (modl.ai, the TITAN research system below) combine 2-3 of these rather
+than picking one paradigm.
+
+2. GENERALIZING ACROSS DIFFERENT GAMES - IS IT ACTUALLY POSSIBLE?
+-------------------------------------------------------------------
+Partial reality check: full generalization across totally different genres doesn't really
+exist yet. What companies actually do is generalize the FRAMEWORK, not the bot itself, and
+then do a cheap per-game configuration pass. Concretely:
+
+- modl.ai sells this as a reusable behavioral AI engine + imitation learning pipeline, but
+  each client game still needs its own data collection and bot tuning.
+
+- TITAN (an LLM-agent MMORPG testing framework from NetEase/academia, deployed in 8
+  production QA pipelines) generalizes by never hard-coding game logic into the model.
+  Instead it defines a game-agnostic state abstraction template - a metadata file per game
+  that maps that game's raw state (HP values, coordinates, inventory) into a standard
+  vocabulary (HP: High/Medium/Low, etc.) that the LLM reasons over. This adaptation requires
+  a one-time setup effort of less than five minutes per game, and the reasoning/prompting
+  logic doesn't change between games - only the mapping layer does.
+
+This is the actual pattern to copy: build one reasoning/execution engine, and make "per-client
+onboarding" mean writing a config/adapter, not rewriting the bot. Your advantage targeting
+Unreal only (rather than "any engine") is that you get this for free at a lower level - UE's
+Gauntlet framework and Automation Driver expose a consistent session/control API across every
+UE game, so your "adapter per client" is much thinner than a multi-engine competitor's would
+be.
+
+3. HOW DO YOU ACTUALLY BUILD THE BOT? (Not "just a C++ autoscript")
+----------------------------------------------------------------------
+You're right that it's not just a scripted autoclicker - that's brittle and breaks on any
+level change, which is the exact problem AI approaches solve. There are three real
+architectures, in increasing sophistication:
+
+A. SCRIPTED/DETERMINISTIC (the baseline, still useful for regression tests)
+Built on Unreal's own Gauntlet framework. Gauntlet is a framework to run sessions of projects
+in Unreal Engine that perform tests and validate results, and it does not require any specific
+game-side automation code - how your game performs tests is entirely up to you, though a
+Gauntlet Plugin provides a TestController class to help puppeteer and monitor a game instance.
+This is C++/Python glue that launches the game, drives input, and asserts on outcomes. Good
+for known regression paths, bad for exploratory bug-hunting (the exact brittleness problem
+you're worried about).
+
+B. RL-TRAINED POLICY BOT
+Use Epic's own Learning Agents plugin or the open-source Unreal ML Agents plugin (modeled on
+Unity ML-Agents). It brings reinforcement learning capabilities to Unreal Engine, letting you
+train agents with a Python API for the training loop while the actual environment runs
+in-engine via Blueprint or C++, with multi-agent support for parallelized training.
+Architecturally: you expose observations (raycasts, player state) and actions
+(move/interact) from C++/Blueprint, the environment runs in UE, and the actual
+gradient-descent training loop runs in Python (Stable-Baselines3, PyTorch) - UE and Python
+talk over a socket, same pattern as Unity ML-Agents. This is a real investment: reward
+shaping, training time (hours to days per level), and it needs retraining whenever content
+changes significantly.
+
+C. LLM-AGENT BOT (no training, most adaptable - recommended to prototype first)
+This is the TITAN architecture, and it's genuinely the best answer to "how is it done in
+detail" - here's the full loop:
+
+  LOOP per test step:
+  1. PERCEIVE: pull raw game state (position, HP, nearby NPCs/items, screenshot) via your
+     game's UE API/Gauntlet hooks
+  2. ABSTRACT: map raw state -> game-agnostic template (e.g. HP: High/Medium/Low) using a
+     per-game config file
+  3. FILTER ACTIONS: enumerate all technically-legal actions, then narrow to ~5 contextually
+     sensible ones (rule-based + LLM-based filtering) - this stops the LLM wasting tokens on
+     "Attack" while mid-dialogue
+  4. DECIDE: LLM picks next action from filtered candidates, given action history + a
+     coverage map of states already visited
+  5. EXECUTE: send action to game via Gauntlet/Automation Driver
+  6. MONITOR: crash monitor, stall/task-progress monitor, execution-time-anomaly monitor
+     running concurrently
+  7. IF STUCK (no progress in N actions): trigger a "reflection" prompt - LLM re-examines
+     the trace and either proposes a new plan or flags a suspected bug with a diagnosis
+     report
+
+A worked example of what a "why am I stuck" reflection prompt looks like in production is
+basically a structured LLM prompt containing current game state, action history, and explicit
+questions like "is this likely a bug, and what evidence supports that?" - the LLM has to
+justify the diagnosis, not just guess. TITAN uses this reflective reasoning as its most
+impactful component - an ablation study found removing it caused the largest performance drop
+of any module.
+
+Bug detection isn't one mechanism, it's several oracles running in parallel: crash listeners,
+a "task hasn't advanced in N actions" stall detector, and a timing-anomaly detector that flags
+actions or tasks taking significantly longer than their historical average, which can indicate
+infinite loops, server lag, or resource leaks even when nothing crashes.
+
+4. CONCRETE REAL-WORLD EXAMPLE, ARCHITECTURE AND ALL
+--------------------------------------------------------
+The most detailed public architecture found (deployed, not a lab toy) is TITAN, from NetEase
+Fuxi AI Lab + academic collaborators, published Sept 2025, and it's about as close to "give me
+the actual system design" as you'll get from public research:
+
+- Built from four components: a Perception/Abstraction module, an Action Optimization module,
+  a Reflective Reasoning module, and an Issue Diagnosis module, run in a loop against the live
+  game.
+- Evaluated against two commercial MMORPGs (PC and mobile), it hit a 95% task completion rate
+  versus 82% for a deep-RL baseline and 83% for a vanilla LLM ReAct agent, and it found 4
+  previously-unknown bugs the other methods and human testers all missed - including an
+  off-by-one quest completion bug and a UI-path-dependent hang bug that only showed up because
+  the LLM agent, unlike scripted/RL bots, didn't always take the same interaction path.
+- It's since been deployed in 8 real-world game QA pipelines, which is the part that matters -
+  this isn't just an academic demo.
+
+On the commercial side, modl.ai is the closest thing to "a company doing exactly what you're
+describing, at scale, for money" - one case study describes a studio uploading a build at end
+of day and having all 60+ levels tested overnight by modl:test, with programmers reviewing bug
+reports the next morning. That overnight-batch pattern (upload build -> bots run unattended ->
+structured report waiting for you) is a good target UX for a QA service.
+
+RECOMMENDATION: Prototype the LLM-agent path (C) first. It requires no training pipeline,
+generalizes across Unreal clients via config files instead of retraining, and you can get a
+working proof-of-concept in weeks by wiring an LLM to Gauntlet's TestController rather than
+building an RL training loop from scratch. Add RL later for specific high-value scenarios
+(e.g., stress-testing combat balance) once you know what clients actually need.
+
+
+PART 2: REPLICATING SOMETHING LIKE RAZER QA COMPANION-AI (educational project)
+==================================================================================
+
+Yes - and there's good news: Razer's version is built specifically for Unreal Engine and
+they've actually published a reference sample project, so you're not reverse-engineering
+blind.
+
+WHAT RAZER QA COMPANION-AI ACTUALLY IS
+-----------------------------------------
+For context on what you'd be replicating: it's a cloud-based automated testing solution that
+detects gameplay bugs, crashes, and performance issues in real time during playtests, and
+automatically generates bug reports with video clips, event logs, and reproduction steps. The
+concrete feature set is:
+
+- Hotkey-triggered clip capture - press a key mid-bug, it auto-records the 20 seconds leading
+  up to the moment to give instant visual context, no need to break flow to write anything
+  down.
+- Vision-based bug detection - an AI model watches gameplay footage and flags visual issues
+  (rendering, animation, physics, collision) without you tagging anything manually.
+- Performance monitoring - tracks FPS, CPU, GPU, and memory in real time, with user-defined
+  thresholds that auto-trigger a report when breached.
+- AI test case generation - feed it a Game Design Document PDF, it generates
+  functional/boundary/negative test cases from that.
+- AI gameplay agents (their newest, still-in-development piece) - select test cases, the AI
+  agent executes them autonomously and returns pass/fail.
+- Integration is via a lightweight SDK dropped into the UE project plus a local
+  RazerAIService running alongside the game, talking to their cloud backend.
+
+Genuinely useful reference: they ship a downloadable Unreal Engine sample project (a TPS demo,
+UE 5.5.4) with the SDK wired in, seeded with intentional bugs, specifically so people can see
+the integration pattern. Worth pulling apart as a reference even if you don't use their SDK.
+
+SCOPING THIS AS AN EDUCATIONAL BUILD
+----------------------------------------
+Building the full thing (cloud LLM backend + trained vision model + agentic gameplay bots) is
+a lot, but you can build a real, working slice that demonstrates the same architecture
+end-to-end. Suggested phasing:
+
+PHASE 1 - Capture layer (pure UE, no AI yet)
+A UE plugin that: (a) keeps a rolling buffer of the last ~20 seconds of gameplay frames,
+(b) listens for a hotkey to dump that buffer to a video file, (c) polls FPS/CPU/GPU/memory
+each tick and fires an event when a threshold is crossed. This alone teaches you UE's
+UGameViewportClient for frame capture, FPlatformMemory/stat APIs for perf metrics, and input
+binding - no ML involved, but it's the actual foundation every AI QA tool sits on top of.
+
+PHASE 2 - Vision-based bug classification
+Send the captured clip's key frame(s) to a vision-capable LLM API (Claude, GPT-4V) with a
+prompt like "does this frame show a rendering/collision/animation bug, and describe it." This
+is genuinely close to how the real product works - Razer's system generates structured bug
+reports with descriptions and reproduction steps straight from footage. Build a small backend
+service (Python/FastAPI is fine) that receives the clip from UE, calls the vision model, and
+writes a structured report (JSON -> simple web dashboard or just a Jira-style ticket).
+
+PHASE 3 - Test case generation from a GDD
+Separate from the game entirely - this is pure prompt engineering. Feed a design doc to an
+LLM, ask for structured test cases (functional/boundary/negative), output as JSON the Phase 1
+system could theoretically consume later. Good standalone module, cheap to build, easy to
+demo.
+
+PHASE 4 (stretch) - a scripted gameplay agent
+This is the "AI gameplay agent" piece, which is the hardest part and still in development even
+for Razer's actual product. For an educational project, scope this down to: an LLM-driven
+agent that follows a predefined test case (from Phase 3), sends inputs via UE's Automation
+Driver or Gauntlet TestController, and reports pass/fail plus anything unexpected it observed.
+Don't try to make it a free-roaming exploratory bot - that's the genuinely hard research
+problem (that's what TITAN, described above, spent a whole paper on).
+
+This scoping mirrors the real product's own rollout order - capture/reporting first, test
+generation second, autonomous agents last as the most advanced piece - so it's a legitimate
+architecture to learn from, not just a toy simplification.
