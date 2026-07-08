@@ -14,7 +14,12 @@ def inject_missing_material(actor, output_dir, actor_index):
 
     #각 컴포넌트들은 property를 가짐. property를 이름으로 읽기.
     #get_editor_property, set_editor_property...
-    original_materials = mesh_comp.get_editor_property("override_materials")
+    #original_materials = mesh_comp.get_editor_property("override_materials")
+
+    #original_materials가 실제로 복사된 객체인지, 아니면 단순히 현재 리퍼런스인지 알 수가 없으므로
+    #리스트를 만들어서 독립적으로 복사를 하게 함.
+    original_materials = list(mesh_comp.get_editor_property("override_materials"))
+
 
     #material slot 갯수. 슬롯대로 차례대로 돌아가면서 missing value를 집어넣기 위해서 몇 개있는지 카운트.
     num_slots = mesh_comp.get_num_materials()
