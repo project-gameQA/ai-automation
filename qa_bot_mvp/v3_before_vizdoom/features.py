@@ -2,18 +2,14 @@
 features.py  (코어)
 ------------------
 Episode 하나를 -> 고정 길이 특징 벡터 하나로 변환.
-
-게임 스케일 파라미터(move_eps, cell_size)를 Episode.meta에서 읽어 자기 조정한다.
-  - move_eps  : 이 거리 이하로 움직이면 '안 움직임'으로 본다.
-                격자 게임(MiniGrid)은 0(정확히 제자리), 연속 게임(Doom)은 작은 양수.
-  - cell_size : 위치를 이 크기로 양자화해 '고유 칸'을 센다.
-                MiniGrid는 1(정수 그대로), Doom은 크게(예: 32) 잡아 공간을 격자화.
-기본값(eps=0, cell_size=1)은 MiniGrid 동작과 완전히 동일하다.
+데이터를 꺼내는 부분만 Episode/Step 기준으로 바뀌었고,
+거리/streak/엔트로피 계산 로직은 리팩터링 전과 동일하다.
 
 각 특징은 특정 버그를 잡아내도록 설계됨:
   - max_freeze_streak : 오래 멈춰있으면 softlock 신호
-  - max_jump          : 한 스텝에 순간이동하면 teleport 신호
+  - max_jump          : 한 스텝에 순간이동하면 teleport 신호 (정상은 최대 1칸)
   - total_reward      : 보상이 이상하면 reward_bug 신호
+나머지는 '정상 플레이의 통계적 모양'을 표현한다.
 """
 import numpy as np
 
@@ -28,26 +24,20 @@ def _manhattan(a, b):
 
 
 def featurize(ep):
-    move_eps = ep.meta.get("move_eps", 0.0)     # 격자=0, 연속=작은 양수
-    cell_size = ep.meta.get("cell_size", 1.0)   # 격자=1, 연속=크게
-
-    # 초기 위치 + 각 스텝의 실행 후 위치 = 전체 pos 시퀀스
+    # 초기 위치(리셋 직후) + 각 스텝의 실행 후 위치 = BEFORE와 동일한 pos 시퀀스
     init = ep.meta.get("init_pos")
     pos = ([tuple(init)] if init is not None else []) + [tuple(s.pos) for s in ep.steps]
     actions = np.array([s.action for s in ep.steps] or [0], dtype=int)
     rewards = np.array([s.reward for s in ep.steps] or [0.0], dtype=float)
 
-    jumps = np.array([_manhattan(pos[i], pos[i + 1]) for i in range(len(pos) - 1)] or [0.0])
-    no_move = (jumps <= move_eps).astype(int)   # eps=0이면 격자에서 jumps==0과 동일
+    jumps = np.array([_manhattan(pos[i], pos[i + 1]) for i in range(len(pos) - 1)] or [0])
+    no_move = (jumps == 0).astype(int)
 
     # 연속으로 안 움직인 최장 구간 (softlock 탐지)
     max_streak = cur = 0
     for nm in no_move:
         cur = cur + 1 if nm else 0
         max_streak = max(max_streak, cur)
-
-    # 방문한 고유 칸 수 (cell_size로 양자화). MiniGrid는 cell_size=1이라 정수 그대로.
-    cells = {(round(p[0] / cell_size), round(p[1] / cell_size)) for p in pos}
 
     # 행동 다양성 (엔트로피, 자연로그 밑 e)
     counts = np.bincount(actions, minlength=7).astype(float)
@@ -59,7 +49,7 @@ def featurize(ep):
         len(actions),                    # 에피소드 길이
         rewards.sum(),                   # 총 보상
         float(ep.outcome == "success"),  # 성공 여부
-        len(cells),                      # 방문한 고유 칸 수 (탐험량)
+        len(set(pos)),                   # 방문한 고유 칸 수 (탐험량)
         no_move.mean(),                  # 안 움직인 스텝 비율
         max_streak,                      # 최장 정지 구간
         jumps.max(),                     # 한 스텝 최대 이동거리

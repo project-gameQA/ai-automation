@@ -1,61 +1,66 @@
-# Game QA 자동화 MVP — 봇 플레이 기반 이상탐지
+# Game QA 자동화 — 봇 플레이 기반 이상탐지
 
-미리 만들어진 게임 환경(MiniGrid)을 봇이 플레이하며 데이터를 생성하고,
-정상 플레이만으로 학습한 이상탐지 모델이 주입된 버그를 잡아내는 파이프라인.
-게임을 직접 만들지 않고, 화면 인식(비전)도 쓰지 않는다.
+봇이 게임을 플레이하며 데이터를 생성하고, 정상 플레이만으로 학습한
+이상탐지 모델이 주입된 버그를 잡아낸다. 게임을 직접 만들지 않고,
+미리 만들어진 게임 환경(MiniGrid, ViZDoom)을 어댑터로 붙인다.
 
-## 파이프라인
+## 아키텍처: 어댑터 + 게임 무관 코어
 
 ```
-게임 환경 (MiniGrid-DoorKey)
-        │
-        ├─ 무작위 봇이 플레이 ──> 정상 궤적 (state·action·reward 시퀀스)
-        │
-        └─ 결함 주입 wrapper ──> 버그 궤적 (softlock / teleport / reward_bug)
-                                        │
-                궤적 → 고정 길이 특징 벡터 (features.py)
-                                        │
-                정상만으로 IsolationForest 학습 (detect.py)
-                                        │
-                정상+버그 테스트셋으로 평가 → QA 리포트
+[게임별 어댑터] ──표준 Episode/Step──> [게임 무관 코어]
+ MiniGrid                               스키마 / 특징 / 이상탐지
+ ViZDoom(Doom)                          (어떤 게임이든 재사용)
 ```
+새 게임을 붙인다 = 표준 포맷을 뱉는 어댑터 하나를 추가한다. 코어는 무수정.
 
-## 파일 구조
+## 폴더 구조
 
-| 파일 | 역할 |
-|------|------|
-| `env_defects.py` | 게임에 고장을 주입하는 wrapper (합성 버그 = 정답 라벨 확보) |
-| `collect.py`     | 봇이 게임을 플레이하며 궤적을 기록 |
-| `features.py`    | 궤적 하나 → 특징 벡터 하나 |
-| `detect.py`      | 정상만으로 이상탐지기 학습 + 평가 |
-| `run.py`         | 위 전부를 한 번에 실행 |
+```
+game-qa-mvp/
+├── run.py                  # MiniGrid 파이프라인 실행
+├── run_vizdoom.py          # 실제 Doom 파이프라인 실행
+│
+├── qa_core/                # 재사용 코어 (게임 무관)
+│   ├── schema.py           #   표준 궤적 포맷 (어댑터↔코어 계약)
+│   ├── features.py         #   궤적 → 특징 벡터 (스케일은 meta로 자기조정)
+│   └── detect.py           #   IsolationForest 이상탐지 학습/평가
+│
+├── adapters/
+│   ├── minigrid/           # 격자 게임 어댑터 (collect, env_defects)
+│   └── vizdoom/            # 실제 Doom 어댑터 (collect, env_defects)
+│
+├── REFACTOR_01_schema.md       # 표준 포맷 도입 기록
+├── REFACTOR_02_restructure.md  # 패키지 구조 재구성 기록
+├── REFACTOR_03_vizdoom.md      # 실제 게임 전이 기록
+└── v1_/v2_/v3_ ...             # 각 단계 직전 스냅샷 (문서화용)
+```
 
 ## 실행
 
 ```bash
-pip install gymnasium minigrid scikit-learn numpy
-python run.py
+pip install gymnasium minigrid scikit-learn numpy vizdoom
+python run.py            # MiniGrid (격자 세계)
+python run_vizdoom.py    # 실제 Doom (연속 좌표, 헤드리스)
 ```
 
-## 예시 결과
+## 파이프라인 6단계
 
-```
-=== 버그 종류별 탐지율 (recall) ===
-    softlock: 1.000   # 얼어붙음 → max_freeze_streak로 완벽 탐지
-    teleport: 0.833   # 순간이동 → max_jump로 탐지 (정상은 항상 1.00)
-  reward_bug: 0.200   # 미묘한 보상 오염 → 특징 개선 필요
-```
+1. 봇이 게임을 플레이 → 궤적(Episode) 수집
+2. 결함 주입(softlock/teleport/reward_bug)으로 정답 라벨 확보
+3. 궤적 → 고정 길이 특징 벡터
+4. 정상 데이터만으로 이상탐지기 학습 (비지도)
+5. 정상+버그 테스트셋으로 평가 (precision/recall/ROC-AUC)
+6. 버그 종류별 탐지율 리포트
 
-핵심 교훈: teleport는 "max_jump > 1이면 무조건 버그"라는 **하드 오라클**로
-잡는 게 맞고, reward_bug처럼 미묘한 건 **특징 설계/ML**이 필요하다.
-버그 종류에 따라 탐지 방식이 다르다는 것 자체가 이 프로젝트의 발견.
+## 결과 요약
 
-## 다음 단계 (확장)
+| | MiniGrid (격자) | Doom (실제 게임) |
+|---|:---:|:---:|
+| softlock recall | 1.000 | 1.000 |
+| reward_bug recall | 0.200 | 0.650 |
+| 코어 재사용 | — | 무수정 |
 
-1. **오라클 층 추가** — max_jump>1 같은 하드 규칙을 ML과 분리해서 이중 탐지
-2. **특징 강화** — reward_bug 탐지를 위한 보상 시퀀스 특징 추가
-3. **오토인코더** — IsolationForest 대신 신경망 이상탐지 (재구성 오차)
-4. **RL 봇** — 무작위 봇을 Stable-Baselines3 PPO로 격상 (더 현실적인 정상 플레이)
-5. **버그 분류기** — 이상 탐지 후 "어떤 종류 버그인지"까지 supervised 분류
-6. **비전 확장** — 상태값 대신 화면 프레임 기반 (VizDoom/Atari)
-7. **차별점** — 여기에 너만의 아이디어 하나 추가
+핵심 발견: 스키마와 탐지 모델은 게임 무관하게 재사용되지만,
+특징은 격자 vs 연속 좌표 차이 때문에 게임별 스케일 파라미터가 필요하다
+(`move_eps`, `cell_size`를 어댑터가 meta로 선언, 코어는 한 벌 유지).
+자세한 내용은 `REFACTOR_03_vizdoom.md` 참고.
