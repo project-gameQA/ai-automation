@@ -33,7 +33,7 @@ def rollout(defect=None, seed=0):
     steps = []
     terminated = truncated = False
     for t in range(MAX_STEPS):
-        action = int(rng.integers(0, 6))  # left,right,forward,pickup,drop,toggle 중 무작위
+        action = env.choose_action(rng)   # 결함이 행동 선택에 개입(low_entropy 등). 로깅도 이 값.
         obs, reward, terminated, truncated, info = env.step(action)
         steps.append(Step(
             t=t,

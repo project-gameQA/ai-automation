@@ -1,0 +1,2091 @@
+{
+  "run": {
+    "game_id": "vizdoom-my-way-home",
+    "created_at": "2026-07-13T03:04:41.130057+00:00",
+    "n_episodes": 120,
+    "model": {
+      "type": "IsolationForest",
+      "n_estimators": 300,
+      "contamination": "auto"
+    }
+  },
+  "summary": {
+    "n_episodes": 120,
+    "n_flagged": 76,
+    "flag_rate": 0.633333
+  },
+  "feature_names": [
+    "length",
+    "total_reward",
+    "success",
+    "unique_cells",
+    "frac_no_move",
+    "max_freeze_streak",
+    "max_jump",
+    "action_entropy"
+  ],
+  "feature_means": {
+    "flagged": {
+      "length": 144.592105,
+      "total_reward": 1.365871,
+      "success": 0.105263,
+      "unique_cells": 10.921053,
+      "frac_no_move": 0.601997,
+      "max_freeze_streak": 75.789474,
+      "max_jump": 29.521801,
+      "action_entropy": 1.109412
+    },
+    "unflagged": {
+      "length": 150.0,
+      "total_reward": 1.412727,
+      "success": 0.0,
+      "unique_cells": 13.022727,
+      "frac_no_move": 0.274697,
+      "max_freeze_streak": 8.0,
+      "max_jump": 31.985113,
+      "action_entropy": 1.919814
+    }
+  },
+  "episodes": [
+    {
+      "index": 40,
+      "seed": 10000,
+      "anomaly_score": 0.676862,
+      "flagged": true,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 1.0,
+        "frac_no_move": 0.94,
+        "max_freeze_streak": 140.0,
+        "max_jump": 9.198166,
+        "action_entropy": 0.278663
+      }
+    },
+    {
+      "index": 47,
+      "seed": 10007,
+      "anomaly_score": 0.676862,
+      "flagged": true,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 3.0,
+        "frac_no_move": 0.953333,
+        "max_freeze_streak": 143.0,
+        "max_jump": 15.086075,
+        "action_entropy": 0.193405
+      }
+    },
+    {
+      "index": 56,
+      "seed": 10016,
+      "anomaly_score": 0.676862,
+      "flagged": true,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 1.0,
+        "frac_no_move": 0.933333,
+        "max_freeze_streak": 134.0,
+        "max_jump": 17.218277,
+        "action_entropy": 0.558922
+      }
+    },
+    {
+      "index": 61,
+      "seed": 10021,
+      "anomaly_score": 0.676862,
+      "flagged": true,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 3.0,
+        "frac_no_move": 0.926667,
+        "max_freeze_streak": 139.0,
+        "max_jump": 16.318649,
+        "action_entropy": 0.238934
+      }
+    },
+    {
+      "index": 67,
+      "seed": 10027,
+      "anomaly_score": 0.676862,
+      "flagged": true,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 3.0,
+        "frac_no_move": 0.953333,
+        "max_freeze_streak": 142.0,
+        "max_jump": 12.339249,
+        "action_entropy": 0.221131
+      }
+    },
+    {
+      "index": 65,
+      "seed": 10025,
+      "anomaly_score": 0.675401,
+      "flagged": true,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 3.0,
+        "frac_no_move": 0.92,
+        "max_freeze_streak": 134.0,
+        "max_jump": 18.14653,
+        "action_entropy": 0.449627
+      }
+    },
+    {
+      "index": 69,
+      "seed": 10029,
+      "anomaly_score": 0.669039,
+      "flagged": true,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 6.0,
+        "frac_no_move": 0.926667,
+        "max_freeze_streak": 139.0,
+        "max_jump": 15.856613,
+        "action_entropy": 0.230373
+      }
+    },
+    {
+      "index": 41,
+      "seed": 10001,
+      "anomaly_score": 0.665701,
+      "flagged": true,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 3.0,
+        "frac_no_move": 0.9,
+        "max_freeze_streak": 134.0,
+        "max_jump": 19.490616,
+        "action_entropy": 0.388325
+      }
+    },
+    {
+      "index": 53,
+      "seed": 10013,
+      "anomaly_score": 0.665701,
+      "flagged": true,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 3.0,
+        "frac_no_move": 0.913333,
+        "max_freeze_streak": 137.0,
+        "max_jump": 19.541901,
+        "action_entropy": 0.364087
+      }
+    },
+    {
+      "index": 70,
+      "seed": 10030,
+      "anomaly_score": 0.665701,
+      "flagged": true,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 4.0,
+        "frac_no_move": 0.946667,
+        "max_freeze_streak": 141.0,
+        "max_jump": 19.468536,
+        "action_entropy": 0.221131
+      }
+    },
+    {
+      "index": 52,
+      "seed": 10012,
+      "anomaly_score": 0.664471,
+      "flagged": true,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 3.0,
+        "frac_no_move": 0.906667,
+        "max_freeze_streak": 135.0,
+        "max_jump": 19.748688,
+        "action_entropy": 0.492542
+      }
+    },
+    {
+      "index": 51,
+      "seed": 10011,
+      "anomaly_score": 0.662873,
+      "flagged": true,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 2.0,
+        "frac_no_move": 0.9,
+        "max_freeze_streak": 130.0,
+        "max_jump": 38.859787,
+        "action_entropy": 0.524328
+      }
+    },
+    {
+      "index": 50,
+      "seed": 10010,
+      "anomaly_score": 0.657501,
+      "flagged": true,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 5.0,
+        "frac_no_move": 0.886667,
+        "max_freeze_streak": 130.0,
+        "max_jump": 19.612869,
+        "action_entropy": 0.513402
+      }
+    },
+    {
+      "index": 46,
+      "seed": 10006,
+      "anomaly_score": 0.656487,
+      "flagged": true,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 4.0,
+        "frac_no_move": 0.893333,
+        "max_freeze_streak": 134.0,
+        "max_jump": 21.314377,
+        "action_entropy": 0.345249
+      }
+    },
+    {
+      "index": 66,
+      "seed": 10026,
+      "anomaly_score": 0.656096,
+      "flagged": true,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 3.0,
+        "frac_no_move": 0.92,
+        "max_freeze_streak": 132.0,
+        "max_jump": 22.244431,
+        "action_entropy": 0.489054
+      }
+    },
+    {
+      "index": 60,
+      "seed": 10020,
+      "anomaly_score": 0.655763,
+      "flagged": true,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 4.0,
+        "frac_no_move": 0.926667,
+        "max_freeze_streak": 138.0,
+        "max_jump": 34.934296,
+        "action_entropy": 0.217642
+      }
+    },
+    {
+      "index": 75,
+      "seed": 10035,
+      "anomaly_score": 0.653854,
+      "flagged": true,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 8.0,
+        "frac_no_move": 0.893333,
+        "max_freeze_streak": 134.0,
+        "max_jump": 41.994186,
+        "action_entropy": 0.342984
+      }
+    },
+    {
+      "index": 45,
+      "seed": 10005,
+      "anomaly_score": 0.6537,
+      "flagged": true,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 6.0,
+        "frac_no_move": 0.92,
+        "max_freeze_streak": 138.0,
+        "max_jump": 20.157562,
+        "action_entropy": 0.318345
+      }
+    },
+    {
+      "index": 62,
+      "seed": 10022,
+      "anomaly_score": 0.652988,
+      "flagged": true,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 3.0,
+        "frac_no_move": 0.933333,
+        "max_freeze_streak": 133.0,
+        "max_jump": 30.62117,
+        "action_entropy": 0.52084
+      }
+    },
+    {
+      "index": 55,
+      "seed": 10015,
+      "anomaly_score": 0.652409,
+      "flagged": true,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 3.0,
+        "frac_no_move": 0.893333,
+        "max_freeze_streak": 130.0,
+        "max_jump": 29.045898,
+        "action_entropy": 0.478118
+      }
+    },
+    {
+      "index": 73,
+      "seed": 10033,
+      "anomaly_score": 0.652407,
+      "flagged": true,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 4.0,
+        "frac_no_move": 0.906667,
+        "max_freeze_streak": 133.0,
+        "max_jump": 31.849731,
+        "action_entropy": 0.525431
+      }
+    },
+    {
+      "index": 64,
+      "seed": 10024,
+      "anomaly_score": 0.6522,
+      "flagged": true,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 3.0,
+        "frac_no_move": 0.906667,
+        "max_freeze_streak": 136.0,
+        "max_jump": 31.911499,
+        "action_entropy": 0.375594
+      }
+    },
+    {
+      "index": 54,
+      "seed": 10014,
+      "anomaly_score": 0.650711,
+      "flagged": true,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 2.0,
+        "frac_no_move": 0.94,
+        "max_freeze_streak": 141.0,
+        "max_jump": 28.564957,
+        "action_entropy": 0.221131
+      }
+    },
+    {
+      "index": 77,
+      "seed": 10037,
+      "anomaly_score": 0.649203,
+      "flagged": true,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 4.0,
+        "frac_no_move": 0.926667,
+        "max_freeze_streak": 139.0,
+        "max_jump": 23.910965,
+        "action_entropy": 0.230373
+      }
+    },
+    {
+      "index": 59,
+      "seed": 10019,
+      "anomaly_score": 0.648897,
+      "flagged": true,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 4.0,
+        "frac_no_move": 0.9,
+        "max_freeze_streak": 133.0,
+        "max_jump": 27.464539,
+        "action_entropy": 0.515086
+      }
+    },
+    {
+      "index": 76,
+      "seed": 10036,
+      "anomaly_score": 0.648782,
+      "flagged": true,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 3.0,
+        "frac_no_move": 0.893333,
+        "max_freeze_streak": 129.0,
+        "max_jump": 25.995316,
+        "action_entropy": 0.415133
+      }
+    },
+    {
+      "index": 43,
+      "seed": 10003,
+      "anomaly_score": 0.648735,
+      "flagged": true,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 5.0,
+        "frac_no_move": 0.926667,
+        "max_freeze_streak": 139.0,
+        "max_jump": 21.242737,
+        "action_entropy": 0.278663
+      }
+    },
+    {
+      "index": 68,
+      "seed": 10028,
+      "anomaly_score": 0.648379,
+      "flagged": true,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 7.0,
+        "frac_no_move": 0.926667,
+        "max_freeze_streak": 139.0,
+        "max_jump": 35.982208,
+        "action_entropy": 0.278663
+      }
+    },
+    {
+      "index": 63,
+      "seed": 10023,
+      "anomaly_score": 0.648042,
+      "flagged": true,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 6.0,
+        "frac_no_move": 0.926667,
+        "max_freeze_streak": 139.0,
+        "max_jump": 35.756561,
+        "action_entropy": 0.181309
+      }
+    },
+    {
+      "index": 49,
+      "seed": 10009,
+      "anomaly_score": 0.647706,
+      "flagged": true,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 3.0,
+        "frac_no_move": 0.88,
+        "max_freeze_streak": 131.0,
+        "max_jump": 26.572647,
+        "action_entropy": 0.494226
+      }
+    },
+    {
+      "index": 44,
+      "seed": 10004,
+      "anomaly_score": 0.644391,
+      "flagged": true,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 5.0,
+        "frac_no_move": 0.906667,
+        "max_freeze_streak": 134.0,
+        "max_jump": 29.177963,
+        "action_entropy": 0.445382
+      }
+    },
+    {
+      "index": 72,
+      "seed": 10032,
+      "anomaly_score": 0.644391,
+      "flagged": true,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 5.0,
+        "frac_no_move": 0.853333,
+        "max_freeze_streak": 126.0,
+        "max_jump": 29.170456,
+        "action_entropy": 0.445591
+      }
+    },
+    {
+      "index": 58,
+      "seed": 10018,
+      "anomaly_score": 0.642698,
+      "flagged": true,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 5.0,
+        "frac_no_move": 0.9,
+        "max_freeze_streak": 134.0,
+        "max_jump": 23.48938,
+        "action_entropy": 0.513402
+      }
+    },
+    {
+      "index": 71,
+      "seed": 10031,
+      "anomaly_score": 0.642224,
+      "flagged": true,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 7.0,
+        "frac_no_move": 0.913333,
+        "max_freeze_streak": 136.0,
+        "max_jump": 28.908737,
+        "action_entropy": 0.238934
+      }
+    },
+    {
+      "index": 42,
+      "seed": 10002,
+      "anomaly_score": 0.638975,
+      "flagged": true,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 9.0,
+        "frac_no_move": 0.853333,
+        "max_freeze_streak": 127.0,
+        "max_jump": 35.217789,
+        "action_entropy": 0.613601
+      }
+    },
+    {
+      "index": 48,
+      "seed": 10008,
+      "anomaly_score": 0.63798,
+      "flagged": true,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 6.0,
+        "frac_no_move": 0.88,
+        "max_freeze_streak": 131.0,
+        "max_jump": 26.701904,
+        "action_entropy": 0.384836
+      }
+    },
+    {
+      "index": 74,
+      "seed": 10034,
+      "anomaly_score": 0.637658,
+      "flagged": true,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 8.0,
+        "frac_no_move": 0.886667,
+        "max_freeze_streak": 128.0,
+        "max_jump": 31.62262,
+        "action_entropy": 0.569967
+      }
+    },
+    {
+      "index": 79,
+      "seed": 10039,
+      "anomaly_score": 0.637658,
+      "flagged": true,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 8.0,
+        "frac_no_move": 0.886667,
+        "max_freeze_streak": 133.0,
+        "max_jump": 31.748978,
+        "action_entropy": 0.260906
+      }
+    },
+    {
+      "index": 57,
+      "seed": 10017,
+      "anomaly_score": 0.634447,
+      "flagged": true,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 9.0,
+        "frac_no_move": 0.866667,
+        "max_freeze_streak": 128.0,
+        "max_jump": 24.05246,
+        "action_entropy": 0.622381
+      }
+    },
+    {
+      "index": 78,
+      "seed": 10038,
+      "anomaly_score": 0.633895,
+      "flagged": true,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 12.0,
+        "frac_no_move": 0.873333,
+        "max_freeze_streak": 131.0,
+        "max_jump": 36.365448,
+        "action_entropy": 0.278663
+      }
+    },
+    {
+      "index": 3,
+      "seed": 113,
+      "anomaly_score": 0.624537,
+      "flagged": true,
+      "outcome": "success",
+      "features": {
+        "length": 80.0,
+        "total_reward": 0.9683,
+        "success": 1.0,
+        "unique_cells": 20.0,
+        "frac_no_move": 0.2,
+        "max_freeze_streak": 7.0,
+        "max_jump": 42.694153,
+        "action_entropy": 1.904885
+      }
+    },
+    {
+      "index": 97,
+      "seed": 20017,
+      "anomaly_score": 0.62257,
+      "flagged": true,
+      "outcome": "success",
+      "features": {
+        "length": 86.0,
+        "total_reward": 3.6657,
+        "success": 1.0,
+        "unique_cells": 18.0,
+        "frac_no_move": 0.325581,
+        "max_freeze_streak": 10.0,
+        "max_jump": 31.36113,
+        "action_entropy": 1.899131
+      }
+    },
+    {
+      "index": 32,
+      "seed": 142,
+      "anomaly_score": 0.618047,
+      "flagged": true,
+      "outcome": "success",
+      "features": {
+        "length": 95.0,
+        "total_reward": 0.9623,
+        "success": 1.0,
+        "unique_cells": 16.0,
+        "frac_no_move": 0.284211,
+        "max_freeze_streak": 8.0,
+        "max_jump": 39.794632,
+        "action_entropy": 1.901093
+      }
+    },
+    {
+      "index": 86,
+      "seed": 20006,
+      "anomaly_score": 0.602089,
+      "flagged": true,
+      "outcome": "success",
+      "features": {
+        "length": 92.0,
+        "total_reward": 3.6633,
+        "success": 1.0,
+        "unique_cells": 19.0,
+        "frac_no_move": 0.130435,
+        "max_freeze_streak": 4.0,
+        "max_jump": 34.371841,
+        "action_entropy": 1.899697
+      }
+    },
+    {
+      "index": 4,
+      "seed": 114,
+      "anomaly_score": 0.599386,
+      "flagged": true,
+      "outcome": "success",
+      "features": {
+        "length": 109.0,
+        "total_reward": 0.9566,
+        "success": 1.0,
+        "unique_cells": 8.0,
+        "frac_no_move": 0.33945,
+        "max_freeze_streak": 6.0,
+        "max_jump": 36.886566,
+        "action_entropy": 1.929926
+      }
+    },
+    {
+      "index": 107,
+      "seed": 20027,
+      "anomaly_score": 0.596282,
+      "flagged": true,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": 3.84,
+        "success": 0.0,
+        "unique_cells": 31.0,
+        "frac_no_move": 0.246667,
+        "max_freeze_streak": 17.0,
+        "max_jump": 37.021301,
+        "action_entropy": 1.944706
+      }
+    },
+    {
+      "index": 31,
+      "seed": 141,
+      "anomaly_score": 0.596,
+      "flagged": true,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 6.0,
+        "frac_no_move": 0.413333,
+        "max_freeze_streak": 18.0,
+        "max_jump": 22.892166,
+        "action_entropy": 1.886068
+      }
+    },
+    {
+      "index": 114,
+      "seed": 20034,
+      "anomaly_score": 0.591711,
+      "flagged": true,
+      "outcome": "success",
+      "features": {
+        "length": 96.0,
+        "total_reward": 3.3618,
+        "success": 1.0,
+        "unique_cells": 19.0,
+        "frac_no_move": 0.1875,
+        "max_freeze_streak": 3.0,
+        "max_jump": 35.699539,
+        "action_entropy": 1.913032
+      }
+    },
+    {
+      "index": 0,
+      "seed": 110,
+      "anomaly_score": 0.584416,
+      "flagged": true,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 43.0,
+        "frac_no_move": 0.086667,
+        "max_freeze_streak": 4.0,
+        "max_jump": 41.852829,
+        "action_entropy": 1.927153
+      }
+    },
+    {
+      "index": 95,
+      "seed": 20015,
+      "anomaly_score": 0.58425,
+      "flagged": true,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": 4.44,
+        "success": 0.0,
+        "unique_cells": 19.0,
+        "frac_no_move": 0.386667,
+        "max_freeze_streak": 15.0,
+        "max_jump": 41.235474,
+        "action_entropy": 1.940784
+      }
+    },
+    {
+      "index": 88,
+      "seed": 20008,
+      "anomaly_score": 0.580235,
+      "flagged": true,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": 7.14,
+        "success": 0.0,
+        "unique_cells": 26.0,
+        "frac_no_move": 0.186667,
+        "max_freeze_streak": 21.0,
+        "max_jump": 37.609253,
+        "action_entropy": 1.915204
+      }
+    },
+    {
+      "index": 118,
+      "seed": 20038,
+      "anomaly_score": 0.579192,
+      "flagged": true,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": 4.44,
+        "success": 0.0,
+        "unique_cells": 5.0,
+        "frac_no_move": 0.366667,
+        "max_freeze_streak": 18.0,
+        "max_jump": 23.411514,
+        "action_entropy": 1.933067
+      }
+    },
+    {
+      "index": 99,
+      "seed": 20019,
+      "anomaly_score": 0.578997,
+      "flagged": true,
+      "outcome": "success",
+      "features": {
+        "length": 107.0,
+        "total_reward": 3.0575,
+        "success": 1.0,
+        "unique_cells": 19.0,
+        "frac_no_move": 0.168224,
+        "max_freeze_streak": 3.0,
+        "max_jump": 31.21048,
+        "action_entropy": 1.91257
+      }
+    },
+    {
+      "index": 111,
+      "seed": 20031,
+      "anomaly_score": 0.5674,
+      "flagged": true,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": 4.14,
+        "success": 0.0,
+        "unique_cells": 32.0,
+        "frac_no_move": 0.186667,
+        "max_freeze_streak": 5.0,
+        "max_jump": 35.818939,
+        "action_entropy": 1.863833
+      }
+    },
+    {
+      "index": 85,
+      "seed": 20005,
+      "anomaly_score": 0.562474,
+      "flagged": true,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": 5.64,
+        "success": 0.0,
+        "unique_cells": 35.0,
+        "frac_no_move": 0.113333,
+        "max_freeze_streak": 7.0,
+        "max_jump": 31.248016,
+        "action_entropy": 1.932486
+      }
+    },
+    {
+      "index": 19,
+      "seed": 129,
+      "anomaly_score": 0.558906,
+      "flagged": true,
+      "outcome": "success",
+      "features": {
+        "length": 124.0,
+        "total_reward": 0.9507,
+        "success": 1.0,
+        "unique_cells": 20.0,
+        "frac_no_move": 0.209677,
+        "max_freeze_streak": 6.0,
+        "max_jump": 29.354218,
+        "action_entropy": 1.923863
+      }
+    },
+    {
+      "index": 92,
+      "seed": 20012,
+      "anomaly_score": 0.551503,
+      "flagged": true,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": 3.54,
+        "success": 0.0,
+        "unique_cells": 25.0,
+        "frac_no_move": 0.293333,
+        "max_freeze_streak": 16.0,
+        "max_jump": 34.066498,
+        "action_entropy": 1.906967
+      }
+    },
+    {
+      "index": 11,
+      "seed": 121,
+      "anomaly_score": 0.542302,
+      "flagged": true,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 7.0,
+        "frac_no_move": 0.446667,
+        "max_freeze_streak": 17.0,
+        "max_jump": 27.5522,
+        "action_entropy": 1.930356
+      }
+    },
+    {
+      "index": 23,
+      "seed": 133,
+      "anomaly_score": 0.539938,
+      "flagged": true,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 35.0,
+        "frac_no_move": 0.12,
+        "max_freeze_streak": 9.0,
+        "max_jump": 44.766052,
+        "action_entropy": 1.914785
+      }
+    },
+    {
+      "index": 93,
+      "seed": 20013,
+      "anomaly_score": 0.539021,
+      "flagged": true,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": 5.34,
+        "success": 0.0,
+        "unique_cells": 6.0,
+        "frac_no_move": 0.253333,
+        "max_freeze_streak": 15.0,
+        "max_jump": 23.082138,
+        "action_entropy": 1.93327
+      }
+    },
+    {
+      "index": 81,
+      "seed": 20001,
+      "anomaly_score": 0.53767,
+      "flagged": true,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": 4.14,
+        "success": 0.0,
+        "unique_cells": 5.0,
+        "frac_no_move": 0.373333,
+        "max_freeze_streak": 14.0,
+        "max_jump": 24.880112,
+        "action_entropy": 1.9259
+      }
+    },
+    {
+      "index": 105,
+      "seed": 20025,
+      "anomaly_score": 0.53586,
+      "flagged": true,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": 5.04,
+        "success": 0.0,
+        "unique_cells": 7.0,
+        "frac_no_move": 0.326667,
+        "max_freeze_streak": 16.0,
+        "max_jump": 28.882996,
+        "action_entropy": 1.918465
+      }
+    },
+    {
+      "index": 103,
+      "seed": 20023,
+      "anomaly_score": 0.533529,
+      "flagged": true,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": 2.64,
+        "success": 0.0,
+        "unique_cells": 33.0,
+        "frac_no_move": 0.206667,
+        "max_freeze_streak": 6.0,
+        "max_jump": 35.818893,
+        "action_entropy": 1.943476
+      }
+    },
+    {
+      "index": 109,
+      "seed": 20029,
+      "anomaly_score": 0.532118,
+      "flagged": true,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": 2.94,
+        "success": 0.0,
+        "unique_cells": 16.0,
+        "frac_no_move": 0.2,
+        "max_freeze_streak": 4.0,
+        "max_jump": 35.515442,
+        "action_entropy": 1.876745
+      }
+    },
+    {
+      "index": 98,
+      "seed": 20018,
+      "anomaly_score": 0.531192,
+      "flagged": true,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": 5.34,
+        "success": 0.0,
+        "unique_cells": 13.0,
+        "frac_no_move": 0.386667,
+        "max_freeze_streak": 8.0,
+        "max_jump": 37.297455,
+        "action_entropy": 1.941906
+      }
+    },
+    {
+      "index": 102,
+      "seed": 20022,
+      "anomaly_score": 0.530867,
+      "flagged": true,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": 3.54,
+        "success": 0.0,
+        "unique_cells": 24.0,
+        "frac_no_move": 0.173333,
+        "max_freeze_streak": 3.0,
+        "max_jump": 36.730316,
+        "action_entropy": 1.923588
+      }
+    },
+    {
+      "index": 13,
+      "seed": 123,
+      "anomaly_score": 0.525884,
+      "flagged": true,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 5.0,
+        "frac_no_move": 0.313333,
+        "max_freeze_streak": 18.0,
+        "max_jump": 19.829529,
+        "action_entropy": 1.924094
+      }
+    },
+    {
+      "index": 30,
+      "seed": 140,
+      "anomaly_score": 0.52062,
+      "flagged": true,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 7.0,
+        "frac_no_move": 0.313333,
+        "max_freeze_streak": 22.0,
+        "max_jump": 27.924622,
+        "action_entropy": 1.895943
+      }
+    },
+    {
+      "index": 115,
+      "seed": 20035,
+      "anomaly_score": 0.517077,
+      "flagged": true,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": 5.34,
+        "success": 0.0,
+        "unique_cells": 15.0,
+        "frac_no_move": 0.326667,
+        "max_freeze_streak": 10.0,
+        "max_jump": 41.062515,
+        "action_entropy": 1.90511
+      }
+    },
+    {
+      "index": 119,
+      "seed": 20039,
+      "anomaly_score": 0.513758,
+      "flagged": true,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": 4.14,
+        "success": 0.0,
+        "unique_cells": 6.0,
+        "frac_no_move": 0.386667,
+        "max_freeze_streak": 12.0,
+        "max_jump": 28.336258,
+        "action_entropy": 1.929928
+      }
+    },
+    {
+      "index": 101,
+      "seed": 20021,
+      "anomaly_score": 0.511069,
+      "flagged": true,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": 5.04,
+        "success": 0.0,
+        "unique_cells": 5.0,
+        "frac_no_move": 0.18,
+        "max_freeze_streak": 5.0,
+        "max_jump": 37.045105,
+        "action_entropy": 1.921733
+      }
+    },
+    {
+      "index": 117,
+      "seed": 20037,
+      "anomaly_score": 0.510523,
+      "flagged": true,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": 2.94,
+        "success": 0.0,
+        "unique_cells": 8.0,
+        "frac_no_move": 0.32,
+        "max_freeze_streak": 12.0,
+        "max_jump": 37.218262,
+        "action_entropy": 1.929261
+      }
+    },
+    {
+      "index": 12,
+      "seed": 122,
+      "anomaly_score": 0.508073,
+      "flagged": true,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 31.0,
+        "frac_no_move": 0.16,
+        "max_freeze_streak": 3.0,
+        "max_jump": 36.629425,
+        "action_entropy": 1.913171
+      }
+    },
+    {
+      "index": 80,
+      "seed": 20000,
+      "anomaly_score": 0.505221,
+      "flagged": true,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": 6.24,
+        "success": 0.0,
+        "unique_cells": 25.0,
+        "frac_no_move": 0.206667,
+        "max_freeze_streak": 6.0,
+        "max_jump": 40.064682,
+        "action_entropy": 1.936056
+      }
+    },
+    {
+      "index": 90,
+      "seed": 20010,
+      "anomaly_score": 0.501855,
+      "flagged": true,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": 3.24,
+        "success": 0.0,
+        "unique_cells": 29.0,
+        "frac_no_move": 0.233333,
+        "max_freeze_streak": 7.0,
+        "max_jump": 38.896164,
+        "action_entropy": 1.9224
+      }
+    },
+    {
+      "index": 25,
+      "seed": 135,
+      "anomaly_score": 0.500116,
+      "flagged": true,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 6.0,
+        "frac_no_move": 0.36,
+        "max_freeze_streak": 21.0,
+        "max_jump": 28.69136,
+        "action_entropy": 1.918323
+      }
+    },
+    {
+      "index": 106,
+      "seed": 20026,
+      "anomaly_score": 0.495214,
+      "flagged": false,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": 3.24,
+        "success": 0.0,
+        "unique_cells": 3.0,
+        "frac_no_move": 0.32,
+        "max_freeze_streak": 7.0,
+        "max_jump": 34.454636,
+        "action_entropy": 1.929438
+      }
+    },
+    {
+      "index": 110,
+      "seed": 20030,
+      "anomaly_score": 0.494047,
+      "flagged": false,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": 3.84,
+        "success": 0.0,
+        "unique_cells": 5.0,
+        "frac_no_move": 0.326667,
+        "max_freeze_streak": 10.0,
+        "max_jump": 23.2677,
+        "action_entropy": 1.935499
+      }
+    },
+    {
+      "index": 104,
+      "seed": 20024,
+      "anomaly_score": 0.488938,
+      "flagged": false,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": 4.44,
+        "success": 0.0,
+        "unique_cells": 16.0,
+        "frac_no_move": 0.233333,
+        "max_freeze_streak": 7.0,
+        "max_jump": 26.67894,
+        "action_entropy": 1.895708
+      }
+    },
+    {
+      "index": 112,
+      "seed": 20032,
+      "anomaly_score": 0.487312,
+      "flagged": false,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": 3.84,
+        "success": 0.0,
+        "unique_cells": 22.0,
+        "frac_no_move": 0.286667,
+        "max_freeze_streak": 6.0,
+        "max_jump": 38.02034,
+        "action_entropy": 1.929433
+      }
+    },
+    {
+      "index": 10,
+      "seed": 120,
+      "anomaly_score": 0.486972,
+      "flagged": false,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 15.0,
+        "frac_no_move": 0.3,
+        "max_freeze_streak": 10.0,
+        "max_jump": 41.042084,
+        "action_entropy": 1.872001
+      }
+    },
+    {
+      "index": 35,
+      "seed": 145,
+      "anomaly_score": 0.486538,
+      "flagged": false,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 29.0,
+        "frac_no_move": 0.2,
+        "max_freeze_streak": 4.0,
+        "max_jump": 35.403687,
+        "action_entropy": 1.893406
+      }
+    },
+    {
+      "index": 113,
+      "seed": 20033,
+      "anomaly_score": 0.486148,
+      "flagged": false,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": 3.84,
+        "success": 0.0,
+        "unique_cells": 21.0,
+        "frac_no_move": 0.273333,
+        "max_freeze_streak": 7.0,
+        "max_jump": 36.136459,
+        "action_entropy": 1.93748
+      }
+    },
+    {
+      "index": 87,
+      "seed": 20007,
+      "anomaly_score": 0.483724,
+      "flagged": false,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": 2.64,
+        "success": 0.0,
+        "unique_cells": 5.0,
+        "frac_no_move": 0.266667,
+        "max_freeze_streak": 10.0,
+        "max_jump": 23.898926,
+        "action_entropy": 1.925855
+      }
+    },
+    {
+      "index": 84,
+      "seed": 20004,
+      "anomaly_score": 0.483451,
+      "flagged": false,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": 4.44,
+        "success": 0.0,
+        "unique_cells": 12.0,
+        "frac_no_move": 0.286667,
+        "max_freeze_streak": 5.0,
+        "max_jump": 23.920364,
+        "action_entropy": 1.913582
+      }
+    },
+    {
+      "index": 16,
+      "seed": 126,
+      "anomaly_score": 0.482422,
+      "flagged": false,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 29.0,
+        "frac_no_move": 0.186667,
+        "max_freeze_streak": 5.0,
+        "max_jump": 43.893814,
+        "action_entropy": 1.929795
+      }
+    },
+    {
+      "index": 116,
+      "seed": 20036,
+      "anomaly_score": 0.481094,
+      "flagged": false,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": 3.54,
+        "success": 0.0,
+        "unique_cells": 14.0,
+        "frac_no_move": 0.34,
+        "max_freeze_streak": 8.0,
+        "max_jump": 30.758102,
+        "action_entropy": 1.90881
+      }
+    },
+    {
+      "index": 96,
+      "seed": 20016,
+      "anomaly_score": 0.478793,
+      "flagged": false,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": 4.44,
+        "success": 0.0,
+        "unique_cells": 13.0,
+        "frac_no_move": 0.3,
+        "max_freeze_streak": 6.0,
+        "max_jump": 28.129974,
+        "action_entropy": 1.93691
+      }
+    },
+    {
+      "index": 91,
+      "seed": 20011,
+      "anomaly_score": 0.477105,
+      "flagged": false,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": 4.44,
+        "success": 0.0,
+        "unique_cells": 15.0,
+        "frac_no_move": 0.273333,
+        "max_freeze_streak": 10.0,
+        "max_jump": 35.48085,
+        "action_entropy": 1.918607
+      }
+    },
+    {
+      "index": 83,
+      "seed": 20003,
+      "anomaly_score": 0.476803,
+      "flagged": false,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": 3.84,
+        "success": 0.0,
+        "unique_cells": 14.0,
+        "frac_no_move": 0.286667,
+        "max_freeze_streak": 10.0,
+        "max_jump": 28.170044,
+        "action_entropy": 1.930698
+      }
+    },
+    {
+      "index": 108,
+      "seed": 20028,
+      "anomaly_score": 0.475229,
+      "flagged": false,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": 4.14,
+        "success": 0.0,
+        "unique_cells": 6.0,
+        "frac_no_move": 0.293333,
+        "max_freeze_streak": 7.0,
+        "max_jump": 30.42189,
+        "action_entropy": 1.902755
+      }
+    },
+    {
+      "index": 100,
+      "seed": 20020,
+      "anomaly_score": 0.474871,
+      "flagged": false,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": 5.04,
+        "success": 0.0,
+        "unique_cells": 6.0,
+        "frac_no_move": 0.286667,
+        "max_freeze_streak": 6.0,
+        "max_jump": 35.150558,
+        "action_entropy": 1.91853
+      }
+    },
+    {
+      "index": 18,
+      "seed": 128,
+      "anomaly_score": 0.472981,
+      "flagged": false,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 7.0,
+        "frac_no_move": 0.326667,
+        "max_freeze_streak": 6.0,
+        "max_jump": 29.598892,
+        "action_entropy": 1.867893
+      }
+    },
+    {
+      "index": 24,
+      "seed": 134,
+      "anomaly_score": 0.472601,
+      "flagged": false,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 4.0,
+        "frac_no_move": 0.326667,
+        "max_freeze_streak": 11.0,
+        "max_jump": 19.744034,
+        "action_entropy": 1.910332
+      }
+    },
+    {
+      "index": 94,
+      "seed": 20014,
+      "anomaly_score": 0.471046,
+      "flagged": false,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": 4.44,
+        "success": 0.0,
+        "unique_cells": 6.0,
+        "frac_no_move": 0.24,
+        "max_freeze_streak": 8.0,
+        "max_jump": 28.184402,
+        "action_entropy": 1.910623
+      }
+    },
+    {
+      "index": 82,
+      "seed": 20002,
+      "anomaly_score": 0.463643,
+      "flagged": false,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": 4.14,
+        "success": 0.0,
+        "unique_cells": 16.0,
+        "frac_no_move": 0.293333,
+        "max_freeze_streak": 7.0,
+        "max_jump": 34.927963,
+        "action_entropy": 1.914717
+      }
+    },
+    {
+      "index": 39,
+      "seed": 149,
+      "anomaly_score": 0.463614,
+      "flagged": false,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 6.0,
+        "frac_no_move": 0.306667,
+        "max_freeze_streak": 15.0,
+        "max_jump": 32.170776,
+        "action_entropy": 1.933657
+      }
+    },
+    {
+      "index": 89,
+      "seed": 20009,
+      "anomaly_score": 0.459875,
+      "flagged": false,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": 3.54,
+        "success": 0.0,
+        "unique_cells": 14.0,
+        "frac_no_move": 0.273333,
+        "max_freeze_streak": 8.0,
+        "max_jump": 28.18692,
+        "action_entropy": 1.923813
+      }
+    },
+    {
+      "index": 21,
+      "seed": 131,
+      "anomaly_score": 0.450526,
+      "flagged": false,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 6.0,
+        "frac_no_move": 0.2,
+        "max_freeze_streak": 7.0,
+        "max_jump": 19.794571,
+        "action_entropy": 1.911565
+      }
+    },
+    {
+      "index": 8,
+      "seed": 118,
+      "anomaly_score": 0.449736,
+      "flagged": false,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 26.0,
+        "frac_no_move": 0.246667,
+        "max_freeze_streak": 10.0,
+        "max_jump": 39.881393,
+        "action_entropy": 1.937503
+      }
+    },
+    {
+      "index": 34,
+      "seed": 144,
+      "anomaly_score": 0.446358,
+      "flagged": false,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 6.0,
+        "frac_no_move": 0.226667,
+        "max_freeze_streak": 9.0,
+        "max_jump": 20.372452,
+        "action_entropy": 1.939121
+      }
+    },
+    {
+      "index": 28,
+      "seed": 138,
+      "anomaly_score": 0.444107,
+      "flagged": false,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 8.0,
+        "frac_no_move": 0.326667,
+        "max_freeze_streak": 5.0,
+        "max_jump": 29.691483,
+        "action_entropy": 1.89156
+      }
+    },
+    {
+      "index": 1,
+      "seed": 111,
+      "anomaly_score": 0.426906,
+      "flagged": false,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 18.0,
+        "frac_no_move": 0.253333,
+        "max_freeze_streak": 11.0,
+        "max_jump": 41.169312,
+        "action_entropy": 1.923023
+      }
+    },
+    {
+      "index": 33,
+      "seed": 143,
+      "anomaly_score": 0.423119,
+      "flagged": false,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 16.0,
+        "frac_no_move": 0.24,
+        "max_freeze_streak": 5.0,
+        "max_jump": 42.363693,
+        "action_entropy": 1.928277
+      }
+    },
+    {
+      "index": 27,
+      "seed": 137,
+      "anomaly_score": 0.418373,
+      "flagged": false,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 5.0,
+        "frac_no_move": 0.366667,
+        "max_freeze_streak": 10.0,
+        "max_jump": 31.355316,
+        "action_entropy": 1.918197
+      }
+    },
+    {
+      "index": 7,
+      "seed": 117,
+      "anomaly_score": 0.417794,
+      "flagged": false,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 19.0,
+        "frac_no_move": 0.22,
+        "max_freeze_streak": 4.0,
+        "max_jump": 38.890396,
+        "action_entropy": 1.914983
+      }
+    },
+    {
+      "index": 20,
+      "seed": 130,
+      "anomaly_score": 0.416712,
+      "flagged": false,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 16.0,
+        "frac_no_move": 0.28,
+        "max_freeze_streak": 8.0,
+        "max_jump": 41.795502,
+        "action_entropy": 1.935663
+      }
+    },
+    {
+      "index": 15,
+      "seed": 125,
+      "anomaly_score": 0.416161,
+      "flagged": false,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 6.0,
+        "frac_no_move": 0.28,
+        "max_freeze_streak": 10.0,
+        "max_jump": 30.046295,
+        "action_entropy": 1.939421
+      }
+    },
+    {
+      "index": 14,
+      "seed": 124,
+      "anomaly_score": 0.415163,
+      "flagged": false,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 24.0,
+        "frac_no_move": 0.193333,
+        "max_freeze_streak": 7.0,
+        "max_jump": 33.475143,
+        "action_entropy": 1.930328
+      }
+    },
+    {
+      "index": 6,
+      "seed": 116,
+      "anomaly_score": 0.412313,
+      "flagged": false,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 6.0,
+        "frac_no_move": 0.313333,
+        "max_freeze_streak": 7.0,
+        "max_jump": 21.864655,
+        "action_entropy": 1.911243
+      }
+    },
+    {
+      "index": 38,
+      "seed": 148,
+      "anomaly_score": 0.406798,
+      "flagged": false,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 5.0,
+        "frac_no_move": 0.266667,
+        "max_freeze_streak": 11.0,
+        "max_jump": 29.495636,
+        "action_entropy": 1.92019
+      }
+    },
+    {
+      "index": 29,
+      "seed": 139,
+      "anomaly_score": 0.40591,
+      "flagged": false,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 13.0,
+        "frac_no_move": 0.293333,
+        "max_freeze_streak": 6.0,
+        "max_jump": 36.415009,
+        "action_entropy": 1.936175
+      }
+    },
+    {
+      "index": 26,
+      "seed": 136,
+      "anomaly_score": 0.405307,
+      "flagged": false,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 24.0,
+        "frac_no_move": 0.246667,
+        "max_freeze_streak": 6.0,
+        "max_jump": 38.911636,
+        "action_entropy": 1.923466
+      }
+    },
+    {
+      "index": 5,
+      "seed": 115,
+      "anomaly_score": 0.404148,
+      "flagged": false,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 19.0,
+        "frac_no_move": 0.273333,
+        "max_freeze_streak": 12.0,
+        "max_jump": 30.609879,
+        "action_entropy": 1.919278
+      }
+    },
+    {
+      "index": 9,
+      "seed": 119,
+      "anomaly_score": 0.401464,
+      "flagged": false,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 6.0,
+        "frac_no_move": 0.326667,
+        "max_freeze_streak": 10.0,
+        "max_jump": 23.776199,
+        "action_entropy": 1.929238
+      }
+    },
+    {
+      "index": 36,
+      "seed": 146,
+      "anomaly_score": 0.401376,
+      "flagged": false,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 16.0,
+        "frac_no_move": 0.24,
+        "max_freeze_streak": 10.0,
+        "max_jump": 37.961441,
+        "action_entropy": 1.923966
+      }
+    },
+    {
+      "index": 2,
+      "seed": 112,
+      "anomaly_score": 0.398559,
+      "flagged": false,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 22.0,
+        "frac_no_move": 0.22,
+        "max_freeze_streak": 7.0,
+        "max_jump": 38.445633,
+        "action_entropy": 1.922876
+      }
+    },
+    {
+      "index": 17,
+      "seed": 127,
+      "anomaly_score": 0.394534,
+      "flagged": false,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 22.0,
+        "frac_no_move": 0.22,
+        "max_freeze_streak": 7.0,
+        "max_jump": 37.502563,
+        "action_entropy": 1.916544
+      }
+    },
+    {
+      "index": 37,
+      "seed": 147,
+      "anomaly_score": 0.392666,
+      "flagged": false,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 6.0,
+        "frac_no_move": 0.313333,
+        "max_freeze_streak": 8.0,
+        "max_jump": 24.917099,
+        "action_entropy": 1.92867
+      }
+    },
+    {
+      "index": 22,
+      "seed": 132,
+      "anomaly_score": 0.392038,
+      "flagged": false,
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 6.0,
+        "frac_no_move": 0.313333,
+        "max_freeze_streak": 9.0,
+        "max_jump": 30.968292,
+        "action_entropy": 1.930976
+      }
+    }
+  ]
+}

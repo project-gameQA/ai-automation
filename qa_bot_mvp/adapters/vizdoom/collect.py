@@ -11,6 +11,8 @@ qa_core/features.py, qa_core/detect.py를 그대로 재사용할 수 있다.
           MiniGrid-DoorKey의 '이동+목표' 구조에 대응).
 """
 import os
+import shutil
+import tempfile
 import numpy as np
 import vizdoom as vzd
 from qa_core.schema import Episode, Step
@@ -27,8 +29,42 @@ MOVE_EPS = 2.0      # 2 유닛 이하 이동은 '정지'로 간주 (softlock 탐
 CELL_SIZE = 32.0    # 위치를 32유닛 격자로 양자화해 '고유 칸' 계산
 
 
-def _make_game():
+# ---------------------------------------------------------------------------
+# ViZDoom 쓰기 위치 문제 해결
+# ---------------------------------------------------------------------------
+# ViZDoom 엔진은 '_vizdoom.ini'(엔진 커맨드라인: -config _vizdoom.ini)와
+# '_vizdoom/' 임시 폴더를 '현재 작업 디렉터리'에 만든다. 그 폴더가 쓰기 불가면
+# (예: site-packages 안 / Program Files / OneDrive 잠금 폴더에서 실행)
+# viz_controlled·viz_instance_id CVAR 설정이 "write protected"로 실패하고,
+# 엔진이 컨트롤 모드 진입을 못 해 멈춘다. 이때 파이썬은 네이티브 init()에서
+# 블록돼 Ctrl+C조차 안 먹힌다.
+#
+# 해결: 엔진이 쓰는 파일을 '항상 쓰기 가능한 임시 작업 폴더'로 몰아넣는다.
+#   (1) 그 폴더로 chdir  → '_vizdoom/' 가 거기 생김
+#   (2) set_doom_config_path() → '_vizdoom.ini' 도 거기 생김
+# 실행 위치와 무관하게 동작. 끝나면 원래 폴더로 복귀하고 임시폴더 삭제.
+# ---------------------------------------------------------------------------
+class _EngineWorkdir:
+    """with 블록 동안 쓰기 가능한 임시 폴더로 이동하고, 끝나면 복귀·정리."""
+    def __enter__(self):
+        self.saved_cwd = os.getcwd()
+        self.path = tempfile.mkdtemp(prefix="vizdoom_work_")
+        os.chdir(self.path)
+        return self
+
+    @property
+    def config_path(self):
+        return os.path.join(self.path, "_vizdoom.ini")
+
+    def __exit__(self, *exc):
+        os.chdir(self.saved_cwd)
+        shutil.rmtree(self.path, ignore_errors=True)
+        return False
+
+
+def _make_game(config_path):
     game = vzd.DoomGame()
+    game.set_doom_config_path(config_path)  # ← .ini 를 쓰기 가능한 경로로 고정
     game.load_config(os.path.join(vzd.scenarios_path, f"{SCENARIO}.cfg"))
     game.set_window_visible(False)          # 헤드리스
     game.set_mode(vzd.Mode.PLAYER)
@@ -49,21 +85,23 @@ def rollout(game, defect=None, seed=0):
 
     n_buttons = game.get_available_buttons_size()
     dfx = VizdoomDefect(defect=defect, rng=rng)
-    dfx.reset(n_buttons)
 
     gv0 = game.get_state().game_variables
     init_pos = [float(gv0[0]), float(gv0[1]), float(gv0[2])]
+    dfx.reset(n_buttons, init_pos=init_pos)
 
     steps = []
     reached_goal = False
     for t in range(MAX_STEPS):
         if game.is_episode_finished():
             break
-        # 무작위 행동 (MOVE_FORWARD 쪽에 약간 가중해 실제 이동 유도)
+        # 이번 스텝 이전의 현재 위치 (under_explore가 반경 판단에 사용)
+        gv_now = game.get_state().game_variables
+        cur_pos = [float(gv_now[0]), float(gv_now[1]), float(gv_now[2])]
+
         action = [int(rng.integers(0, 2)) for _ in range(n_buttons)]
-        action = dfx.apply_action(t, action)                 # softlock 주입
+        action = dfx.modify_action(t, action, cur_pos)       # 미묘한 결함 주입
         reward = game.make_action(action, FRAME_SKIP)
-        reward = dfx.corrupt_reward(float(reward))           # reward_bug 주입
 
         finished = game.is_episode_finished()
         if finished:
@@ -77,7 +115,7 @@ def rollout(game, defect=None, seed=0):
             health = float(gv[3])
 
         steps.append(Step(
-            t=t, action=action_to_int(action), reward=reward,
+            t=t, action=action_to_int(action), reward=float(reward),
             pos=pos, done=bool(finished), state={"health": health},
         ))
         if finished:
@@ -101,9 +139,15 @@ def action_to_int(action):
 
 
 def collect(n, defect=None, seed0=0):
-    """n판을 플레이해서 Episode 리스트를 반환. (game 객체 1개 재사용)"""
-    game = _make_game()
-    try:
-        return [rollout(game, defect=defect, seed=seed0 + i) for i in range(n)]
-    finally:
-        game.close()
+    """n판을 플레이해서 Episode 리스트를 반환. (game 객체 1개 재사용)
+
+    엔진이 쓰는 파일(_vizdoom.ini, _vizdoom/)을 쓰기 가능한 임시 폴더로
+    몰아넣어, 실행 위치가 쓰기 불가여도(site-packages/Program Files 등)
+    'write protected' 후 멈추는 문제를 피한다.
+    """
+    with _EngineWorkdir() as wd:            # 쓰기 가능한 폴더로 이동(끝나면 복귀·정리)
+        game = _make_game(wd.config_path)
+        try:
+            return [rollout(game, defect=defect, seed=seed0 + i) for i in range(n)]
+        finally:
+            game.close()

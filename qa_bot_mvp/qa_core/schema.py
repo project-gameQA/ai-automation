@@ -45,6 +45,11 @@ class Episode:
 
     meta: dict = field(default_factory=dict)  # 자유 필드: 엔진, 맵 이름, 빌드 버전 등
 
+    # --- 어댑터가 채우는 '게임별 스칼라 특징' {이름: 숫자}. 코어는 이름/의미를 모름. ---
+    # 비어 있으면(기본) 코어의 공통 특징만 사용 → 게임 무관 동작 그대로.
+    # 어댑터가 여기에 뭘 넣든(0개~N개) features.build_matrix가 자동으로 벡터에 포함한다.
+    game_features: dict = field(default_factory=dict)
+
     # ---------- 직렬화 ----------
     def to_json_line(self) -> str:
         """에피소드 하나 -> JSON 한 줄 (데이터셋은 .jsonl 한 줄 = 한 판)."""
