@@ -1,0 +1,595 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1076</width>
+    <height>600</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <widget class="QStackedWidget" name="stackedWidget">
+    <property name="geometry">
+     <rect>
+      <x>-1</x>
+      <y>-1</y>
+      <width>1081</width>
+      <height>561</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true"/>
+    </property>
+    <property name="currentIndex">
+     <number>1</number>
+    </property>
+    <widget class="QWidget" name="start_window">
+     <widget class="QPushButton" name="btnGoDashbord">
+      <property name="geometry">
+       <rect>
+        <x>480</x>
+        <y>450</y>
+        <width>161</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>QA 대시보드로 이동</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="newToggle">
+      <property name="geometry">
+       <rect>
+        <x>394</x>
+        <y>70</y>
+        <width>101</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">/* 중요: 버튼이 눌려진 상태 (Flat 및 음영 효과) */
+QPushButton:checked {
+    border-style: inset;        /* 테두리가 안으로 들어간 효과 */
+}</string>
+      </property>
+      <property name="text">
+       <string>NEW</string>
+      </property>
+      <property name="checkable">
+       <bool>true</bool>
+      </property>
+      <property name="checked">
+       <bool>true</bool>
+      </property>
+      <property name="default">
+       <bool>false</bool>
+      </property>
+      <attribute name="buttonGroup">
+       <string notr="true">newOrResumeToggle</string>
+      </attribute>
+     </widget>
+     <widget class="QPushButton" name="resumeToggle">
+      <property name="geometry">
+       <rect>
+        <x>630</x>
+        <y>70</y>
+        <width>101</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">/* 중요: 버튼이 눌려진 상태 (Flat 및 음영 효과) */
+QPushButton:checked {
+    border-style: inset;        /* 테두리가 안으로 들어간 효과 */
+}</string>
+      </property>
+      <property name="text">
+       <string>RESUME</string>
+      </property>
+      <property name="checkable">
+       <bool>true</bool>
+      </property>
+      <attribute name="buttonGroup">
+       <string notr="true">newOrResumeToggle</string>
+      </attribute>
+     </widget>
+     <widget class="QStackedWidget" name="newOrResumeWindow">
+      <property name="geometry">
+       <rect>
+        <x>200</x>
+        <y>110</y>
+        <width>711</width>
+        <height>341</height>
+       </rect>
+      </property>
+      <property name="currentIndex">
+       <number>1</number>
+      </property>
+      <widget class="QWidget" name="newPage">
+       <widget class="QLineEdit" name="txtFileRoute">
+        <property name="geometry">
+         <rect>
+          <x>430</x>
+          <y>220</y>
+          <width>201</width>
+          <height>22</height>
+         </rect>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="btnGameFileOpen">
+        <property name="geometry">
+         <rect>
+          <x>130</x>
+          <y>130</y>
+          <width>141</width>
+          <height>61</height>
+         </rect>
+        </property>
+        <property name="styleSheet">
+         <string notr="true"/>
+        </property>
+        <property name="text">
+         <string>게임 파일 삽입</string>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="btnTxtFileOpen">
+        <property name="geometry">
+         <rect>
+          <x>460</x>
+          <y>130</y>
+          <width>141</width>
+          <height>61</height>
+         </rect>
+        </property>
+        <property name="styleSheet">
+         <string notr="true"/>
+        </property>
+        <property name="text">
+         <string>문서 삽입</string>
+        </property>
+       </widget>
+       <widget class="QLineEdit" name="gameFileRoute">
+        <property name="geometry">
+         <rect>
+          <x>110</x>
+          <y>220</y>
+          <width>181</width>
+          <height>22</height>
+         </rect>
+        </property>
+       </widget>
+      </widget>
+      <widget class="QWidget" name="resumePage">
+       <widget class="QPushButton" name="btnNext">
+        <property name="geometry">
+         <rect>
+          <x>410</x>
+          <y>230</y>
+          <width>101</width>
+          <height>41</height>
+         </rect>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">/* 중요: 버튼이 눌려진 상태 (Flat 및 음영 효과) */
+QPushButton:checked {
+    border-style: inset;        /* 테두리가 안으로 들어간 효과 */
+}</string>
+        </property>
+        <property name="text">
+         <string>이어서</string>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+        <attribute name="buttonGroup">
+         <string notr="true">resetOrNextToggle</string>
+        </attribute>
+       </widget>
+       <widget class="QPushButton" name="btnReset">
+        <property name="geometry">
+         <rect>
+          <x>226</x>
+          <y>230</y>
+          <width>101</width>
+          <height>41</height>
+         </rect>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">/* 중요: 버튼이 눌려진 상태 (Flat 및 음영 효과) */
+QPushButton:checked {
+    border-style: inset;        /* 테두리가 안으로 들어간 효과 */
+}</string>
+        </property>
+        <property name="text">
+         <string>처음부터</string>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+        <attribute name="buttonGroup">
+         <string notr="true">resetOrNextToggle</string>
+        </attribute>
+       </widget>
+       <widget class="QPushButton" name="btnQAFileOpen">
+        <property name="geometry">
+         <rect>
+          <x>286</x>
+          <y>80</y>
+          <width>161</width>
+          <height>61</height>
+         </rect>
+        </property>
+        <property name="styleSheet">
+         <string notr="true"/>
+        </property>
+        <property name="text">
+         <string>기존 QA 파일 삽입</string>
+        </property>
+       </widget>
+       <widget class="QLineEdit" name="QAFileRoute">
+        <property name="geometry">
+         <rect>
+          <x>246</x>
+          <y>160</y>
+          <width>241</width>
+          <height>22</height>
+         </rect>
+        </property>
+       </widget>
+      </widget>
+     </widget>
+    </widget>
+    <widget class="QWidget" name="qa_window">
+     <widget class="QGraphicsView" name="gameMovie">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>220</y>
+        <width>541</width>
+        <height>351</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label">
+      <property name="geometry">
+       <rect>
+        <x>140</x>
+        <y>420</y>
+        <width>111</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>여기에 게임 화면</string>
+      </property>
+     </widget>
+     <widget class="QListWidget" name="errorReportHistory">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>30</y>
+        <width>281</width>
+        <height>191</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">color:rgb(205, 214, 205)</string>
+      </property>
+     </widget>
+     <widget class="QTextBrowser" name="errorReport">
+      <property name="geometry">
+       <rect>
+        <x>540</x>
+        <y>0</y>
+        <width>541</width>
+        <height>561</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">color:rgb(205, 214, 205)</string>
+      </property>
+     </widget>
+     <widget class="QTextBrowser" name="allLog">
+      <property name="geometry">
+       <rect>
+        <x>280</x>
+        <y>30</y>
+        <width>261</width>
+        <height>191</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">color:rgb(205, 214, 205)</string>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="filesRoute">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>441</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">color:rgb(205, 214, 205)</string>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+      <property name="readOnly">
+       <bool>true</bool>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="btnStartQA">
+      <property name="geometry">
+       <rect>
+        <x>440</x>
+        <y>0</y>
+        <width>101</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true"/>
+      </property>
+      <property name="text">
+       <string>▶ QA 시작</string>
+      </property>
+     </widget>
+     <zorder>gameMovie</zorder>
+     <zorder>errorReportHistory</zorder>
+     <zorder>label</zorder>
+     <zorder>errorReport</zorder>
+     <zorder>allLog</zorder>
+     <zorder>filesRoute</zorder>
+     <zorder>btnStartQA</zorder>
+    </widget>
+   </widget>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>1076</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menu">
+    <property name="title">
+     <string>파일</string>
+    </property>
+    <addaction name="actionsplash_screen"/>
+    <addaction name="actionopen_new_window"/>
+    <addaction name="actionsave"/>
+    <addaction name="actionsave_as"/>
+    <addaction name="actionclose"/>
+   </widget>
+   <widget class="QMenu" name="menu_2">
+    <property name="title">
+     <string>로그</string>
+    </property>
+    <addaction name="actionlog_kakuninn"/>
+    <addaction name="actionerror_plus"/>
+   </widget>
+   <widget class="QMenu" name="menuview">
+    <property name="title">
+     <string>view</string>
+    </property>
+    <addaction name="actiongame"/>
+    <addaction name="actionall_log"/>
+    <addaction name="actionsaishin_error_log"/>
+    <addaction name="actiongenzai_log"/>
+    <addaction name="actionscreen_shot"/>
+   </widget>
+   <widget class="QMenu" name="menu_3">
+    <property name="title">
+     <string>기타</string>
+    </property>
+    <addaction name="actionFind"/>
+   </widget>
+   <addaction name="menu"/>
+   <addaction name="menuview"/>
+   <addaction name="menu_2"/>
+   <addaction name="menu_3"/>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+  <action name="actionsplash_screen">
+   <property name="text">
+    <string>splash screen</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+O</string>
+   </property>
+  </action>
+  <action name="actionlog_kakuninn">
+   <property name="text">
+    <string>log kakuninn</string>
+   </property>
+  </action>
+  <action name="actionerror_plus">
+   <property name="text">
+    <string>Error Plus</string>
+   </property>
+  </action>
+  <action name="actionsave">
+   <property name="text">
+    <string>save</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+S</string>
+   </property>
+  </action>
+  <action name="actionsave_as">
+   <property name="text">
+    <string>save as</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+S</string>
+   </property>
+  </action>
+  <action name="actionback">
+   <property name="text">
+    <string>Undo</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Z</string>
+   </property>
+  </action>
+  <action name="actionctrl_Y">
+   <property name="text">
+    <string>Redo</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Y</string>
+   </property>
+  </action>
+  <action name="actioncut">
+   <property name="text">
+    <string>Cut</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+X</string>
+   </property>
+  </action>
+  <action name="actionpaste">
+   <property name="text">
+    <string>Paste</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+V</string>
+   </property>
+  </action>
+  <action name="actiondelete">
+   <property name="text">
+    <string>Delete</string>
+   </property>
+   <property name="shortcut">
+    <string>Del</string>
+   </property>
+  </action>
+  <action name="actionselect_all">
+   <property name="text">
+    <string>Select All</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+A</string>
+   </property>
+  </action>
+  <action name="actiongame">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>game</string>
+   </property>
+  </action>
+  <action name="actionall_log">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>all error log</string>
+   </property>
+  </action>
+  <action name="actiongenzai_log">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>all log</string>
+   </property>
+  </action>
+  <action name="actionscreen_shot">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>screen shot</string>
+   </property>
+  </action>
+  <action name="actionsaishin_error_log">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>saishin error log</string>
+   </property>
+  </action>
+  <action name="actionclose">
+   <property name="text">
+    <string>close</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+W</string>
+   </property>
+  </action>
+  <action name="actioncopy">
+   <property name="text">
+    <string>Copy</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+C</string>
+   </property>
+  </action>
+  <action name="actionFind1">
+   <property name="text">
+    <string>Find</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+F</string>
+   </property>
+  </action>
+  <action name="actionopen_new_window">
+   <property name="text">
+    <string>open new window</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+N</string>
+   </property>
+  </action>
+  <action name="actionFind">
+   <property name="text">
+    <string>Find</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+F</string>
+   </property>
+  </action>
+ </widget>
+ <resources/>
+ <connections/>
+ <buttongroups>
+  <buttongroup name="newOrResumeToggle">
+   <property name="exclusive">
+    <bool>true</bool>
+   </property>
+  </buttongroup>
+  <buttongroup name="resetOrNextToggle"/>
+ </buttongroups>
+</ui>
