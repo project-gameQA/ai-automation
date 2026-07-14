@@ -31,6 +31,11 @@ class Step:
     state: dict = field(default_factory=dict)    # 게임별 변수: {"health":.., "ammo":..}
     events: list = field(default_factory=list)   # 이름 붙은 사건: ["door_opened"]
 
+    # --- 어댑터가 채우는 '스텝별 게임 특징' {이름: 숫자}. 코어는 이름/의미를 모름. ---
+    # Episode.game_features(판당)와 대칭인 '스텝당' 버전. 시계열(sequence.py)이 사용.
+    # 비어 있으면(기본) 코어 공통 스텝 특징만 씀 → 게임 무관 동작 그대로.
+    game_features: dict = field(default_factory=dict)
+
 
 @dataclass
 class Episode:

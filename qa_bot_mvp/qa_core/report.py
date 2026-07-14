@@ -22,11 +22,12 @@ run.py / run_vizdoom.py가 game_id만 바꿔 같은 함수를 호출한다.
 """
 from datetime import datetime, timezone
 import json
+import os
 import numpy as np
 
 
 def build_report(*, game_id, model, episodes, X, feature_names,
-                 flagged, anomaly_score):
+                 flagged, anomaly_score, hard_violations=None, anomaly_steps=None):
     """
     파이프라인 결과를 '운영형' 리포트 dict로 조립.
 
@@ -42,6 +43,14 @@ def build_report(*, game_id, model, episodes, X, feature_names,
     scores = np.asarray(anomaly_score, dtype=float)
     Xt = np.asarray(X, dtype=float)
     n = len(episodes)
+    # hard_violations: 각 에피소드의 규칙 위반 이름 리스트(oracle.check_invariants 결과).
+    # 안 주면 전부 빈 리스트(규칙 층 없이 이상탐지만).
+    if hard_violations is None:
+        hard_violations = [[] for _ in range(n)]
+    # anomaly_steps: 각 에피소드에서 시계열 모델이 이상으로 짚은 스텝 번호 리스트.
+    # 안 주면 빈 리스트(시계열 층 없이 집계+규칙만).
+    if anomaly_steps is None:
+        anomaly_steps = [[] for _ in range(n)]
 
     # --- 특징 평균: flagged vs unflagged (라벨 없이 계산 가능. 모델 출력으로만 나눔) ---
     fmask = (flagged == 1)
@@ -52,21 +61,28 @@ def build_report(*, game_id, model, episodes, X, feature_names,
         return {nm: None for nm in feature_names}
     feature_means = {"flagged": _means(fmask), "unflagged": _means(~fmask)}
 
-    # --- 에피소드별 상세 (이상 점수 내림차순 = 트리아지 순서) ---
+    # --- 에피소드별 상세 ---
+    # 규칙(하드 오라클)이 이상탐지를 이긴다: hard_violations가 있으면 확정 버그.
+    # 그래서 정렬은 (1) 규칙 위반 있는 판 먼저, (2) 그다음 이상 점수 높은 순.
     rows = []
     for i, ep in enumerate(episodes):
+        viol = list(hard_violations[i])
         rows.append({
             "index": i,
             "seed": ep.seed,
+            "hard_violations": viol,             # 규칙이 확정한 위반(비었으면 규칙상 정상)
             "anomaly_score": round(float(scores[i]), 6),
-            "flagged": bool(flagged[i] == 1),   # 모델이 수상하다고 봤나 (유일한 판정)
-            "outcome": ep.outcome,              # 관측 사실 (success/timeout 등)
+            "flagged": bool(flagged[i] == 1),    # 이상탐지(집계) 판정
+            "anomaly_steps": list(anomaly_steps[i]),  # 시계열 모델이 짚은 이상 스텝 위치
+            "outcome": ep.outcome,
             "features": {nm: round(float(Xt[i, j]), 6)
                          for j, nm in enumerate(feature_names)},
         })
-    rows.sort(key=lambda e: e["anomaly_score"], reverse=True)
+    # 규칙 위반 판을 최상단으로(확정), 그 안에서/이후에는 이상 점수 내림차순.
+    rows.sort(key=lambda e: (len(e["hard_violations"]) > 0, e["anomaly_score"]), reverse=True)
 
     n_flagged = int(fmask.sum())
+    n_violated = int(sum(1 for v in hard_violations if v))
     return {
         "run": {
             "game_id": game_id,
@@ -76,17 +92,20 @@ def build_report(*, game_id, model, episodes, X, feature_names,
         },
         "summary": {
             "n_episodes": n,
-            "n_flagged": n_flagged,                       # 사람이 봐야 할 판 수
+            "n_hard_violations": n_violated,              # 규칙이 확정한 버그 판 수
+            "n_flagged": n_flagged,                       # 이상탐지가 의심한 판 수
             "flag_rate": round(n_flagged / n, 6) if n else 0.0,
         },
         "feature_names": list(feature_names),
-        "feature_means": feature_means,   # flagged vs unflagged (라벨 아님, 모델 출력 기준)
-        "episodes": rows,                 # anomaly_score 내림차순
+        "feature_means": feature_means,
+        "episodes": rows,   # 규칙 위반 먼저 -> 이상 점수 내림차순
     }
 
 
 def save_report(report, path):
-    """리포트 dict를 report.json 으로 저장."""
+    """리포트 dict를 report.json 으로 저장. (상위 폴더 없으면 자동 생성)"""
+    parent = os.path.dirname(os.path.abspath(path))
+    os.makedirs(parent, exist_ok=True)
     with open(path, "w", encoding="utf-8") as f:
         json.dump(report, f, ensure_ascii=False, indent=2)
     return path

@@ -31,3 +31,12 @@ def evaluate(clf, scaler, X_test, y_test):
         y_test, pred, average="binary", zero_division=0)
     auc = roc_auc_score(y_test, anomaly_score)
     return {"precision": prec, "recall": rec, "f1": f1, "roc_auc": auc}, pred, anomaly_score
+
+
+def predict(clf, scaler, X):
+    """라벨 없이 판정만. (실배포: 정답을 모르므로 flagged/score만 낸다)
+    반환: flagged(1=이상), anomaly_score(클수록 이상)."""
+    Xs = scaler.transform(X)
+    anomaly_score = -clf.score_samples(Xs)
+    flagged = (clf.predict(Xs) == -1).astype(int)
+    return flagged, anomaly_score

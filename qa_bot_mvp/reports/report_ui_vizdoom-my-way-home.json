@@ -1,0 +1,672 @@
+{
+  "run": {
+    "game_id": "vizdoom-my-way-home",
+    "created_at": "2026-07-14T03:53:11.664692+00:00",
+    "n_episodes": 30,
+    "model": {
+      "type": "IsolationForest + StepAnomalyModel",
+      "loaded_from": "vizdoom_baseline.joblib"
+    }
+  },
+  "summary": {
+    "n_episodes": 30,
+    "n_hard_violations": 8,
+    "n_flagged": 17,
+    "flag_rate": 0.566667
+  },
+  "feature_names": [
+    "length",
+    "total_reward",
+    "success",
+    "unique_cells",
+    "frac_no_move",
+    "max_freeze_streak",
+    "max_jump",
+    "action_entropy"
+  ],
+  "feature_means": {
+    "flagged": {
+      "length": 143.235294,
+      "total_reward": 0.001529,
+      "success": 0.058824,
+      "unique_cells": 8.647059,
+      "frac_no_move": 0.704762,
+      "max_freeze_streak": 78.294118,
+      "max_jump": 20.177046,
+      "action_entropy": 1.085128
+    },
+    "unflagged": {
+      "length": 150.0,
+      "total_reward": -0.06,
+      "success": 0.0,
+      "unique_cells": 11.692308,
+      "frac_no_move": 0.277949,
+      "max_freeze_streak": 7.923077,
+      "max_jump": 29.701208,
+      "action_entropy": 1.924331
+    }
+  },
+  "episodes": [
+    {
+      "index": 15,
+      "seed": 9100,
+      "hard_violations": [
+        {
+          "type": "stuck",
+          "step": 0,
+          "end": 59
+        }
+      ],
+      "anomaly_score": 0.677243,
+      "flagged": true,
+      "anomaly_steps": [],
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 1.0,
+        "frac_no_move": 1.0,
+        "max_freeze_streak": 150.0,
+        "max_jump": 0.0,
+        "action_entropy": -0.0
+      }
+    },
+    {
+      "index": 16,
+      "seed": 9101,
+      "hard_violations": [
+        {
+          "type": "stuck",
+          "step": 0,
+          "end": 59
+        }
+      ],
+      "anomaly_score": 0.677243,
+      "flagged": true,
+      "anomaly_steps": [],
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 1.0,
+        "frac_no_move": 1.0,
+        "max_freeze_streak": 150.0,
+        "max_jump": 0.0,
+        "action_entropy": -0.0
+      }
+    },
+    {
+      "index": 17,
+      "seed": 9102,
+      "hard_violations": [
+        {
+          "type": "stuck",
+          "step": 0,
+          "end": 59
+        }
+      ],
+      "anomaly_score": 0.677243,
+      "flagged": true,
+      "anomaly_steps": [],
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 1.0,
+        "frac_no_move": 1.0,
+        "max_freeze_streak": 150.0,
+        "max_jump": 0.0,
+        "action_entropy": -0.0
+      }
+    },
+    {
+      "index": 18,
+      "seed": 9103,
+      "hard_violations": [
+        {
+          "type": "stuck",
+          "step": 0,
+          "end": 59
+        }
+      ],
+      "anomaly_score": 0.677243,
+      "flagged": true,
+      "anomaly_steps": [],
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 1.0,
+        "frac_no_move": 1.0,
+        "max_freeze_streak": 150.0,
+        "max_jump": 0.0,
+        "action_entropy": -0.0
+      }
+    },
+    {
+      "index": 19,
+      "seed": 9104,
+      "hard_violations": [
+        {
+          "type": "stuck",
+          "step": 0,
+          "end": 59
+        }
+      ],
+      "anomaly_score": 0.677243,
+      "flagged": true,
+      "anomaly_steps": [],
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 1.0,
+        "frac_no_move": 1.0,
+        "max_freeze_streak": 150.0,
+        "max_jump": 0.0,
+        "action_entropy": -0.0
+      }
+    },
+    {
+      "index": 24,
+      "seed": 9204,
+      "hard_violations": [
+        {
+          "type": "stuck",
+          "step": 13,
+          "end": 72
+        }
+      ],
+      "anomaly_score": 0.640245,
+      "flagged": true,
+      "anomaly_steps": [],
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 8.0,
+        "frac_no_move": 0.913333,
+        "max_freeze_streak": 137.0,
+        "max_jump": 32.032761,
+        "action_entropy": 1.436304
+      }
+    },
+    {
+      "index": 23,
+      "seed": 9203,
+      "hard_violations": [
+        {
+          "type": "stuck",
+          "step": 14,
+          "end": 73
+        }
+      ],
+      "anomaly_score": 0.639653,
+      "flagged": true,
+      "anomaly_steps": [],
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 7.0,
+        "frac_no_move": 0.906667,
+        "max_freeze_streak": 136.0,
+        "max_jump": 30.365356,
+        "action_entropy": 1.438441
+      }
+    },
+    {
+      "index": 21,
+      "seed": 9201,
+      "hard_violations": [
+        {
+          "type": "stuck",
+          "step": 59,
+          "end": 118
+        }
+      ],
+      "anomaly_score": 0.63469,
+      "flagged": true,
+      "anomaly_steps": [],
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 9.0,
+        "frac_no_move": 0.653333,
+        "max_freeze_streak": 91.0,
+        "max_jump": 24.784897,
+        "action_entropy": 1.668369
+      }
+    },
+    {
+      "index": 13,
+      "seed": 9013,
+      "hard_violations": [],
+      "anomaly_score": 0.667405,
+      "flagged": true,
+      "anomaly_steps": [],
+      "outcome": "success",
+      "features": {
+        "length": 35.0,
+        "total_reward": 0.986,
+        "success": 1.0,
+        "unique_cells": 10.0,
+        "frac_no_move": 0.314286,
+        "max_freeze_streak": 5.0,
+        "max_jump": 37.655609,
+        "action_entropy": 1.830017
+      }
+    },
+    {
+      "index": 28,
+      "seed": 9303,
+      "hard_violations": [],
+      "anomaly_score": 0.666664,
+      "flagged": true,
+      "anomaly_steps": [],
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 3.0,
+        "frac_no_move": 0.826667,
+        "max_freeze_streak": 28.0,
+        "max_jump": 19.072235,
+        "action_entropy": 1.2111
+      }
+    },
+    {
+      "index": 29,
+      "seed": 9304,
+      "hard_violations": [],
+      "anomaly_score": 0.64306,
+      "flagged": true,
+      "anomaly_steps": [],
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 7.0,
+        "frac_no_move": 0.573333,
+        "max_freeze_streak": 34.0,
+        "max_jump": 21.865845,
+        "action_entropy": 1.38672
+      }
+    },
+    {
+      "index": 27,
+      "seed": 9302,
+      "hard_violations": [],
+      "anomaly_score": 0.634525,
+      "flagged": true,
+      "anomaly_steps": [],
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 15.0,
+        "frac_no_move": 0.52,
+        "max_freeze_streak": 19.0,
+        "max_jump": 36.563339,
+        "action_entropy": 1.19093
+      }
+    },
+    {
+      "index": 25,
+      "seed": 9300,
+      "hard_violations": [],
+      "anomaly_score": 0.634102,
+      "flagged": true,
+      "anomaly_steps": [],
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 17.0,
+        "frac_no_move": 0.593333,
+        "max_freeze_streak": 39.0,
+        "max_jump": 33.570877,
+        "action_entropy": 1.365907
+      }
+    },
+    {
+      "index": 26,
+      "seed": 9301,
+      "hard_violations": [],
+      "anomaly_score": 0.623244,
+      "flagged": true,
+      "anomaly_steps": [],
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 9.0,
+        "frac_no_move": 0.513333,
+        "max_freeze_streak": 16.0,
+        "max_jump": 36.882858,
+        "action_entropy": 1.246699
+      }
+    },
+    {
+      "index": 20,
+      "seed": 9200,
+      "hard_violations": [],
+      "anomaly_score": 0.613029,
+      "flagged": true,
+      "anomaly_steps": [],
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 7.0,
+        "frac_no_move": 0.58,
+        "max_freeze_streak": 58.0,
+        "max_jump": 22.924896,
+        "action_entropy": 1.825842
+      }
+    },
+    {
+      "index": 1,
+      "seed": 9001,
+      "hard_violations": [],
+      "anomaly_score": 0.538088,
+      "flagged": true,
+      "anomaly_steps": [],
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 1.0,
+        "frac_no_move": 0.42,
+        "max_freeze_streak": 11.0,
+        "max_jump": 14.49263,
+        "action_entropy": 1.913564
+      }
+    },
+    {
+      "index": 12,
+      "seed": 9012,
+      "hard_violations": [],
+      "anomaly_score": 0.53489,
+      "flagged": true,
+      "anomaly_steps": [],
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 49.0,
+        "frac_no_move": 0.166667,
+        "max_freeze_streak": 7.0,
+        "max_jump": 32.798477,
+        "action_entropy": 1.933281
+      }
+    },
+    {
+      "index": 6,
+      "seed": 9006,
+      "hard_violations": [],
+      "anomaly_score": 0.474474,
+      "flagged": false,
+      "anomaly_steps": [
+        7,
+        87
+      ],
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 8.0,
+        "frac_no_move": 0.4,
+        "max_freeze_streak": 14.0,
+        "max_jump": 26.048141,
+        "action_entropy": 1.924768
+      }
+    },
+    {
+      "index": 8,
+      "seed": 9008,
+      "hard_violations": [],
+      "anomaly_score": 0.465741,
+      "flagged": false,
+      "anomaly_steps": [],
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 30.0,
+        "frac_no_move": 0.146667,
+        "max_freeze_streak": 5.0,
+        "max_jump": 35.272766,
+        "action_entropy": 1.933677
+      }
+    },
+    {
+      "index": 7,
+      "seed": 9007,
+      "hard_violations": [],
+      "anomaly_score": 0.438429,
+      "flagged": false,
+      "anomaly_steps": [],
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 2.0,
+        "frac_no_move": 0.353333,
+        "max_freeze_streak": 8.0,
+        "max_jump": 21.122208,
+        "action_entropy": 1.921419
+      }
+    },
+    {
+      "index": 2,
+      "seed": 9002,
+      "hard_violations": [],
+      "anomaly_score": 0.423153,
+      "flagged": false,
+      "anomaly_steps": [],
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 14.0,
+        "frac_no_move": 0.233333,
+        "max_freeze_streak": 8.0,
+        "max_jump": 36.640228,
+        "action_entropy": 1.893517
+      }
+    },
+    {
+      "index": 11,
+      "seed": 9011,
+      "hard_violations": [],
+      "anomaly_score": 0.420256,
+      "flagged": false,
+      "anomaly_steps": [],
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 4.0,
+        "frac_no_move": 0.3,
+        "max_freeze_streak": 10.0,
+        "max_jump": 23.290146,
+        "action_entropy": 1.933176
+      }
+    },
+    {
+      "index": 14,
+      "seed": 9014,
+      "hard_violations": [],
+      "anomaly_score": 0.416691,
+      "flagged": false,
+      "anomaly_steps": [],
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 8.0,
+        "frac_no_move": 0.2,
+        "max_freeze_streak": 4.0,
+        "max_jump": 27.252167,
+        "action_entropy": 1.916639
+      }
+    },
+    {
+      "index": 0,
+      "seed": 9000,
+      "hard_violations": [],
+      "anomaly_score": 0.409544,
+      "flagged": false,
+      "anomaly_steps": [],
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 16.0,
+        "frac_no_move": 0.306667,
+        "max_freeze_streak": 12.0,
+        "max_jump": 33.591309,
+        "action_entropy": 1.929837
+      }
+    },
+    {
+      "index": 4,
+      "seed": 9004,
+      "hard_violations": [],
+      "anomaly_score": 0.406525,
+      "flagged": false,
+      "anomaly_steps": [],
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 5.0,
+        "frac_no_move": 0.32,
+        "max_freeze_streak": 6.0,
+        "max_jump": 29.258133,
+        "action_entropy": 1.909669
+      }
+    },
+    {
+      "index": 3,
+      "seed": 9003,
+      "hard_violations": [],
+      "anomaly_score": 0.402288,
+      "flagged": false,
+      "anomaly_steps": [],
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 11.0,
+        "frac_no_move": 0.26,
+        "max_freeze_streak": 6.0,
+        "max_jump": 29.627396,
+        "action_entropy": 1.938937
+      }
+    },
+    {
+      "index": 22,
+      "seed": 9202,
+      "hard_violations": [],
+      "anomaly_score": 0.402236,
+      "flagged": false,
+      "anomaly_steps": [],
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 10.0,
+        "frac_no_move": 0.26,
+        "max_freeze_streak": 7.0,
+        "max_jump": 30.668167,
+        "action_entropy": 1.940832
+      }
+    },
+    {
+      "index": 10,
+      "seed": 9010,
+      "hard_violations": [],
+      "anomaly_score": 0.392816,
+      "flagged": false,
+      "anomaly_steps": [],
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 15.0,
+        "frac_no_move": 0.213333,
+        "max_freeze_streak": 7.0,
+        "max_jump": 29.11882,
+        "action_entropy": 1.93439
+      }
+    },
+    {
+      "index": 5,
+      "seed": 9005,
+      "hard_violations": [],
+      "anomaly_score": 0.386329,
+      "flagged": false,
+      "anomaly_steps": [],
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 17.0,
+        "frac_no_move": 0.293333,
+        "max_freeze_streak": 9.0,
+        "max_jump": 37.175735,
+        "action_entropy": 1.91589
+      }
+    },
+    {
+      "index": 9,
+      "seed": 9009,
+      "hard_violations": [],
+      "anomaly_score": 0.384018,
+      "flagged": false,
+      "anomaly_steps": [],
+      "outcome": "timeout",
+      "features": {
+        "length": 150.0,
+        "total_reward": -0.06,
+        "success": 0.0,
+        "unique_cells": 12.0,
+        "frac_no_move": 0.326667,
+        "max_freeze_streak": 7.0,
+        "max_jump": 27.050491,
+        "action_entropy": 1.923559
+      }
+    }
+  ]
+}
