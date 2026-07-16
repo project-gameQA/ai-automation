@@ -262,6 +262,12 @@ class QAUIapp(QMainWindow):
         topbar.addWidget(self.backBtn); topbar.addWidget(self.clearBtn); topbar.addStretch(1)
         outer.addLayout(topbar)
 
+        # 팀원 .ui의 errorReportHistory에는 디자인용 더미 항목 4개가 박혀 있다.
+        # (.ui는 무변경 원칙이므로 파일을 고치지 않고 여기서 비운다)
+        # 안 비우면 QA 실행 직후 봇이 도는 동안 더미가 보이고, 클릭하면
+        # dummy_ai_reports에 키가 없어 KeyError로 죽는다.
+        self.errorReportHistory.clear()
+
         tabs = QTabWidget()
 
         tab1 = QWidget()

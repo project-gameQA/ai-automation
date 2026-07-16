@@ -24,7 +24,8 @@ import json
 @dataclass
 class Step:
     t: int                                  # 스텝 번호 (0,1,2,...)
-    action: Union[int, str]                 # 이번 스텝에 봇이 한 행동
+    # action: Union[int, str]                 # 이번 스텝에 봇이 한 행동
+    action: int | str
     reward: float                           # 이번 스텝 보상/점수 변화
     pos: list                               # 위치 [x, y] 또는 [x, y, z]
     done: bool = False                      # 이 스텝에서 판이 끝났는가

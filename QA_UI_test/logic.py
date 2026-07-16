@@ -71,7 +71,10 @@ def go_to_qa_window(self):
     self.stackedWidget.setCurrentWidget(self.qa_window)
 
 def show_error_detail(self, item):
-    self.errorReport.setText(dummy_ai_reports[item.text()])
+    # 목록에 있는데 상세가 없는 항목(외부에서 추가된 항목 등)이 클릭돼도
+    # KeyError로 죽지 않도록 방어한다.
+    self.errorReport.setText(
+        dummy_ai_reports.get(item.text(), "(이 항목의 상세 내용이 없습니다)"))
 
 
 # ============================================================================
