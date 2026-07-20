@@ -1,0 +1,116 @@
+<svg viewBox="0 0 1600 980" xmlns="http://www.w3.org/2000/svg" font-family="Noto Sans CJK KR, sans-serif">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#5f6368"/>
+    </marker>
+    <marker id="arrowlite" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#9aa0a6"/>
+    </marker>
+  </defs>
+
+  <rect x="0" y="0" width="1600" height="980" fill="#ffffff"/>
+
+  <!-- Title -->
+  <text x="55" y="60" font-size="34" font-weight="700" fill="#202124">QA 자동화 하네스 — OpenArena 아키텍처</text>
+  <text x="57" y="96" font-size="18" fill="#5f6368">액터(Actor) → 수집 → 오라클(3계층) → 집계 → 대시보드 · 사람 검토(HITL)</text>
+  <line x1="55" y1="118" x2="1545" y2="118" stroke="#e0e0e0" stroke-width="2"/>
+
+  <!-- Column headers -->
+  <text x="160"  y="158" font-size="17" font-weight="700" fill="#80868b" text-anchor="middle" letter-spacing="2">액 터</text>
+  <text x="470"  y="158" font-size="17" font-weight="700" fill="#80868b" text-anchor="middle" letter-spacing="2">수 집</text>
+  <text x="810"  y="158" font-size="17" font-weight="700" fill="#80868b" text-anchor="middle" letter-spacing="2">오 라 클  (3계층)</text>
+  <text x="1135" y="158" font-size="17" font-weight="700" fill="#80868b" text-anchor="middle" letter-spacing="2">집 계</text>
+  <text x="1440" y="158" font-size="17" font-weight="700" fill="#80868b" text-anchor="middle" letter-spacing="2">표 현</text>
+
+  <!-- ACTOR -->
+  <rect x="45" y="360" width="230" height="320" rx="14" fill="#E8F0FE" stroke="#1A73E8" stroke-width="2.5"/>
+  <text x="160" y="415" font-size="24" font-weight="700" fill="#174EA6" text-anchor="middle">OpenArena</text>
+  <text x="160" y="448" font-size="16" fill="#174EA6" text-anchor="middle">게임 엔진 + 봇</text>
+  <line x1="75" y1="478" x2="245" y2="478" stroke="#1A73E8" stroke-width="1.2" stroke-dasharray="4 4" opacity="0.6"/>
+  <text x="160" y="512" font-size="15" fill="#3c4043" text-anchor="middle">내장 봇 / 스크립트 봇</text>
+  <text x="160" y="556" font-size="15" fill="#3c4043" text-anchor="middle">합성 버그 주입</text>
+  <text x="160" y="578" font-size="13" fill="#5f6368" text-anchor="middle">(재현 가능한 평가용)</text>
+
+  <!-- COLLECTION -->
+  <rect x="345" y="360" width="250" height="320" rx="14" fill="#E6F4F1" stroke="#0F9D8F" stroke-width="2.5"/>
+  <text x="470" y="408" font-size="19" font-weight="700" fill="#0B6E63" text-anchor="middle">데이터 수집</text>
+  <text x="470" y="452" font-size="15" font-weight="600" fill="#3c4043" text-anchor="middle">텔레메트리 (매 틱)</text>
+  <text x="470" y="476" font-size="13" fill="#5f6368" text-anchor="middle">위치·속도·체력·시야각·이벤트</text>
+  <text x="470" y="524" font-size="15" font-weight="600" fill="#3c4043" text-anchor="middle">로그 / 이벤트 스트림</text>
+  <text x="470" y="572" font-size="15" font-weight="600" fill="#3c4043" text-anchor="middle">프로세스 지표</text>
+  <text x="470" y="596" font-size="13" fill="#5f6368" text-anchor="middle">CPU · 메모리 · 생존 여부</text>
+
+  <!-- ORACLE 1 : invariants -->
+  <rect x="665" y="275" width="290" height="150" rx="14" fill="#FEF3E2" stroke="#E8890C" stroke-width="2.5"/>
+  <text x="810" y="315" font-size="18" font-weight="700" fill="#A85A00" text-anchor="middle">① 하드 인바리언트</text>
+  <text x="810" y="343" font-size="14" fill="#3c4043" text-anchor="middle">결정적 규칙 (ML 없음)</text>
+  <text x="810" y="367" font-size="13" fill="#5f6368" text-anchor="middle">Z&lt;바닥 · 체력범위 · 좌표 OOB · 끼임</text>
+  <text x="810" y="402" font-size="13" font-style="italic" fill="#A85A00" text-anchor="middle">오탐 최소 · 설명 명확</text>
+
+  <!-- ORACLE 2 : anomaly -->
+  <rect x="665" y="445" width="290" height="150" rx="14" fill="#F1E9FB" stroke="#8B3FD1" stroke-width="2.5"/>
+  <text x="810" y="485" font-size="18" font-weight="700" fill="#5E2A8F" text-anchor="middle">② 이상탐지 (비지도 ML)</text>
+  <text x="810" y="513" font-size="14" fill="#3c4043" text-anchor="middle">정상 플레이 학습 → 편차 탐지</text>
+  <text x="810" y="537" font-size="13" fill="#5f6368" text-anchor="middle">규칙은 안 어기나 이상한 행동 포착</text>
+  <text x="810" y="572" font-size="13" font-style="italic" fill="#5E2A8F" text-anchor="middle">오탐 있음 · 사람 검토 필요</text>
+
+  <!-- ORACLE 3 : watchdog -->
+  <rect x="665" y="615" width="290" height="150" rx="14" fill="#FDE8E8" stroke="#D93636" stroke-width="2.5"/>
+  <text x="810" y="655" font-size="18" font-weight="700" fill="#9B1C1C" text-anchor="middle">③ 크래시 / 프로세스 워치독</text>
+  <text x="810" y="683" font-size="14" fill="#3c4043" text-anchor="middle">크래시 · 행(멈춤) · 메모리 증가</text>
+  <text x="810" y="707" font-size="13" fill="#5f6368" text-anchor="middle">장시간 봇 매치 안정성 감시</text>
+  <text x="810" y="742" font-size="13" font-style="italic" fill="#9B1C1C" text-anchor="middle">게임 밖에서 감시</text>
+
+  <!-- AGGREGATOR -->
+  <rect x="1035" y="445" width="200" height="150" rx="14" fill="#E8E9FB" stroke="#4B4FD1" stroke-width="2.5"/>
+  <text x="1135" y="500" font-size="18" font-weight="700" fill="#2E31A8" text-anchor="middle">버그 집계</text>
+  <text x="1135" y="528" font-size="14" fill="#3c4043" text-anchor="middle">Bug Store</text>
+  <text x="1135" y="552" font-size="13" fill="#5f6368" text-anchor="middle">버그 목록 누적</text>
+
+  <!-- DASHBOARD -->
+  <rect x="1305" y="345" width="270" height="350" rx="14" fill="#E7F6EC" stroke="#1E9E4A" stroke-width="2.5"/>
+  <text x="1440" y="398" font-size="19" font-weight="700" fill="#146C33" text-anchor="middle">라이브 대시보드</text>
+  <text x="1440" y="438" font-size="14" fill="#3c4043" text-anchor="middle">게임 플레이 화면</text>
+  <text x="1440" y="466" font-size="14" fill="#3c4043" text-anchor="middle">실시간 이벤트 로그</text>
+  <text x="1440" y="494" font-size="14" fill="#3c4043" text-anchor="middle">누적 버그 테이블</text>
+  <text x="1440" y="516" font-size="12" fill="#5f6368" text-anchor="middle">(시각·유형·심각도·스샷)</text>
+  <line x1="1335" y1="546" x2="1545" y2="546" stroke="#1E9E4A" stroke-width="1.2" stroke-dasharray="4 4" opacity="0.6"/>
+  <text x="1440" y="586" font-size="15" font-weight="600" fill="#146C33" text-anchor="middle">→ 사람 검토</text>
+  <text x="1440" y="610" font-size="13" fill="#5f6368" text-anchor="middle">(human-in-the-loop)</text>
+
+  <!-- ARROWS actor->collection -->
+  <line x1="275" y1="520" x2="343" y2="520" stroke="#5f6368" stroke-width="2.5" marker-end="url(#arrow)"/>
+
+  <!-- collection -> 3 oracles -->
+  <path d="M595,470 C630,470 630,350 663,350" fill="none" stroke="#5f6368" stroke-width="2.5" marker-end="url(#arrow)"/>
+  <line x1="595" y1="520" x2="663" y2="520" stroke="#5f6368" stroke-width="2.5" marker-end="url(#arrow)"/>
+  <path d="M595,570 C630,570 630,690 663,690" fill="none" stroke="#5f6368" stroke-width="2.5" marker-end="url(#arrow)"/>
+
+  <!-- oracles -> aggregator -->
+  <path d="M955,350 C995,350 995,490 1033,490" fill="none" stroke="#5f6368" stroke-width="2.5" marker-end="url(#arrow)"/>
+  <line x1="955" y1="520" x2="1033" y2="520" stroke="#5f6368" stroke-width="2.5" marker-end="url(#arrow)"/>
+  <path d="M955,690 C995,690 995,550 1033,550" fill="none" stroke="#5f6368" stroke-width="2.5" marker-end="url(#arrow)"/>
+
+  <!-- aggregator -> dashboard -->
+  <line x1="1235" y1="520" x2="1303" y2="520" stroke="#5f6368" stroke-width="2.5" marker-end="url(#arrow)"/>
+
+  <!-- future feedback loop (dashed) -->
+  <path d="M1440,695 C1440,860 1440,900 800,900 C300,900 160,900 160,682"
+        fill="none" stroke="#9aa0a6" stroke-width="2" stroke-dasharray="7 6" marker-end="url(#arrowlite)"/>
+  <rect x="640" y="880" width="320" height="40" rx="8" fill="#ffffff" stroke="#dadce0" stroke-width="1"/>
+  <text x="800" y="906" font-size="14" font-style="italic" fill="#80868b" text-anchor="middle">향후: 탐색 커버리지 피드백 (RL 액터, 선택)</text>
+
+  <!-- legend -->
+  <g font-size="13" fill="#3c4043">
+    <rect x="55" y="742" width="16" height="16" rx="3" fill="#E8F0FE" stroke="#1A73E8" stroke-width="1.5"/>
+    <text x="78" y="755">액터</text>
+    <rect x="140" y="742" width="16" height="16" rx="3" fill="#E6F4F1" stroke="#0F9D8F" stroke-width="1.5"/>
+    <text x="163" y="755">수집</text>
+    <rect x="225" y="742" width="16" height="16" rx="3" fill="#F1E9FB" stroke="#8B3FD1" stroke-width="1.5"/>
+    <text x="248" y="755">오라클(검출)</text>
+    <rect x="380" y="742" width="16" height="16" rx="3" fill="#E8E9FB" stroke="#4B4FD1" stroke-width="1.5"/>
+    <text x="403" y="755">집계</text>
+    <rect x="460" y="742" width="16" height="16" rx="3" fill="#E7F6EC" stroke="#1E9E4A" stroke-width="1.5"/>
+    <text x="483" y="755">표현 · 사람 검토</text>
+  </g>
+</svg>
