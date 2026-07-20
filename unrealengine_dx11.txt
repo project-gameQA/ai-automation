@@ -1,6 +1,0 @@
-"E:\epic_games\UE_5.8\Engine\Binaries\Win64\UnrealEditor.exe" -dx11
-
-
-
-
-"E:/epic_games/UE_5.8/Engine/Binaries/Win64/UnrealEditor.exe" "E:/ue_projects/LyraStarterGame/LyraStarterGame.uproject"  -ExecutePythonScript="E:/ue_projects/LyraStarterGame/Content/Python/injection_script.py"   -RenderOffscreen -unattended -nosplash
