@@ -121,10 +121,15 @@ class InvariantChecker:
         return None
 
     def _check_stuck(self, s: StateSample) -> Optional[Bug]:
-        """엔티티가 일정 시간 이상 사실상 정지해 있는지 판정한다.
+        """이동 입력이 있는데도 위치가 변하지 않는지(진짜 끼임)를 판정한다.
 
-        이 규칙은 과거 위치와 마지막으로 유의미하게 움직인 시각을 기억해야 하므로
-        내부 이력(self._history)을 갱신하며 동작한다.
+        단순히 '오래 정지'를 보는 것이 아니라, 봇이 움직이려는 의도(이동 명령)가
+        있었는지를 함께 본다. 입력이 없는 정지는 정상 대기(조준·매복)이므로 판정하지
+        않고, 입력이 있는데도 위치가 안 변할 때만 끼임으로 본다. 이렇게 의도와 결과의
+        불일치를 보므로, 시간 기반 규칙의 오탐(정상 대기)이 사라진다.
+
+        과거 위치와 마지막으로 유의미하게 움직인 시각을 기억해야 하므로 내부
+        이력(self._history)을 갱신하며 동작한다.
         """
         rec = self._history.get(s.entity_id)  # 이 엔티티의 이전 이력을 조회한다.
         if rec is None:  # 처음 보는 엔티티라면 비교할 과거가 없다.
@@ -145,7 +150,12 @@ class InvariantChecker:
             rec["last_move_time"] = s.time                # 마지막 이동 시각을 현재로 갱신한다.
             rec["reported"] = False                       # 다음 끼임을 다시 보고할 수 있도록 플래그를 해제한다.
             return None                                   # 움직였으므로 끼임이 아니다.
-        idle = s.time - rec["last_move_time"]  # 마지막 이동 이후 정지가 지속된 시간을 구한다.
+        if s.move_input <= 0:  # 이동 명령이 없으면(정상 대기) 끼임으로 보지 않는다.
+            rec["last_move_time"] = s.time  # 정지 시간이 누적되지 않도록 기준 시각을 현재로 미룬다.
+            rec["reported"] = False         # 보고 플래그도 초기화한다.
+            return None                     # 입력이 없으므로 판정하지 않는다.
+        # 여기까지 왔다면: 이동 명령이 있었는데도 위치가 (허용 오차 이내로) 변하지 않았다.
+        idle = s.time - rec["last_move_time"]  # 입력이 있는데 못 움직인 상태가 지속된 시간을 구한다.
         if idle >= self.stuck_seconds and not rec["reported"]:  # 임계 시간을 넘었고 아직 보고 전이면
             rec["reported"] = True  # 같은 끼임을 매 틱 중복 보고하지 않도록 플래그를 세운다.
             return Bug(
@@ -154,7 +164,7 @@ class InvariantChecker:
                 entity_id=s.entity_id,
                 rule="stuck",
                 severity=Severity.MEDIUM,
-                message=f"{idle:.1f}초 동안 위치 변화가 없어 끼임으로 판정한다.",
+                message=f"이동 입력이 있는데 {idle:.1f}초간 위치가 변하지 않아 끼임으로 판정한다.",
                 details={"idle_seconds": idle, "position": [s.x, s.y, s.z]},
             )
         return None  # 아직 임계에 못 미쳤거나 이미 보고했으면 판정하지 않는다.

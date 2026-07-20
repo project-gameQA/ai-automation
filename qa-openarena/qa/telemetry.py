@@ -55,6 +55,8 @@ class StateSample:
     vz: float          # 속도 Z 성분
     health: float      # 현재 체력
     max_health: float  # 최대 체력. 체력 범위 검사의 상한으로 쓴다.
+    move_input: int = 0  # 이번 틱에 이동 명령이 있었는지(1) 없었는지(0). 끼임 판정의 입력 게이트로 쓴다.
+    attack: int = 0      # 이번 틱에 발사 버튼을 눌렀는지(1) 아닌지(0). 향후 발사 관련 판정에 쓴다.
 
     @property
     def speed(self) -> float:
