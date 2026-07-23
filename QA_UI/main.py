@@ -1,19 +1,42 @@
 import sys
-from PyQt6.QtWidgets import QApplication, QMainWindow
+from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget
 from PyQt6 import uic
-import logic  # logic.py 파일을 가져옵니다.
-import menu_bar  # menu_bar.py 파일을 가져옵니다.
+import logic, menu_bar, thread, qa_flow
 from qt_material import apply_stylesheet, QtStyleTools, list_themes
 
 class QAUIapp(QMainWindow, QtStyleTools):
+
+    BASE_WIDTH = 1042
+    BASE_HEIGHT = 700
+
+    MIN_RATIO = 0.8    # 이보다 작아지면 글씨가 안 읽힘
+    MAX_RATIO = 1.5    # 이보다 커지면 레이아웃이 터짐
+
     def __init__(self):
         super().__init__()
         uic.loadUi("D:/project_gameQA/ai-automation/QA_UI/qa_first.ui", self)
 
+        # ui 폰트
+        self._base_fonts = {}
+        for w in self.findChildren(QWidget):
+            size = w.font().pointSizeF()
+            if size > 0: # -1이면 픽셀 단위 지정된 경우 → 건너뜀
+                self._base_fonts[w] = size
+        self._last_ratio = 0.0    # 중복 적용 방지용
+
+        self.setMinimumSize(self.minimumSizeHint()) # 최소 창 크기
+
         # 초기화
+        self.is_saved = True # 저장돼있나용?
+        self.step = 0 # 몇번째인가용
+        self.found_error = [] # 어떤에러를 찾았나용
+        self.final_config = "" # 파일 기본정보는용
+        self.session = None      
+        self.state = thread.RunState.IDLE # 쓰레드 상태 어떠세용
+
+        qa_flow.restore_qa_result(self)
         self.stackedWidget.setCurrentWidget(self.start_window) 
         self.newOrResumeWindow.setCurrentWidget(self.newPage)
-        self.current_save_path = None 
 
         # 버튼이 눌렸을 때(clicked) 실행할 함수 연결
         self.newToggle.toggled.connect(lambda: logic.new_resume_toggle(self))
@@ -25,19 +48,21 @@ class QAUIapp(QMainWindow, QtStyleTools):
     
         self.btnGoDashbord.clicked.connect(lambda: logic.go_dashboard(self)) # 대시보드로 이동
         self.btnStartQA.clicked.connect(self.toggle_qa_test) # QA 시작 버튼 클릭 시 QA 테스트 시작(QThread)
+        self.btnGoDashbord.clicked.connect(lambda: logic.update_file_route(self)) # 파일 경로를 UI에 띄움
 
-        self.errorReportHistory.addItems(self.dummy_ai_reports.keys()) # 더미데이터 삽입
+        self.errorReportHistory.addItems(self.report_cache.keys()) # 데이터 삽입
         
         # 리스트에서 특정 항목(item)이 '클릭'되면 -> show_error_detail 함수 실행해!
-        self.errorReportHistory.itemClicked.connect(lambda item: logic.show_error_detail(self, item))
+        self.errorReportHistory.itemClicked.connect(lambda item:qa_flow.show_error_detail(self, item))
 
        
         # 메뉴바 애들 ~~~
         self.actionsplash_screen.triggered.connect(lambda: menu_bar.splash_screen(self)) # 딴거 시작하고 싶을때 첫 화면으로
         self.actionopen_new_window.triggered.connect(self.open_new_window) # 새 창 열기
-        self.actionsave_as.triggered.connect(lambda: menu_bar.save_file_as(self)) # 다른 이름으로 저장
-        self.actionsave.triggered.connect(lambda: menu_bar.save_file(self)) # 저장
-        self.actionclose.triggered.connect(lambda: menu_bar.close_application(self)) # 프로그램 종료
+        self.actionexport.triggered.connect(lambda: menu_bar.export_file(self)) # 다른 이름으로 저장
+        self.actionsave.triggered.connect(lambda: menu_bar.save(self)) # 저장
+        self.actionsave_as.triggered.connect(lambda: menu_bar.save_as(self))
+        self.actionclose.triggered.connect(self.close) # 프로그램 종료
         self.actionFind.triggered.connect(lambda: menu_bar.open_search(self))
 
         # 에러 추가 팝업+거기서 저장하면 히스토리로 감
@@ -49,34 +74,10 @@ class QAUIapp(QMainWindow, QtStyleTools):
         [▶ QA 시작] 버튼을 누르면 QA 및 QThread 실행
         [▶ QA 종료] 버튼을 누르면 QA 및 QThread 종료
         """
-        if self.btnStartQA.text() == "▶ QA 시작": # 버튼 글씨가 '시작'일 경우            
-            # 버튼을 빨간색 '중지' 버튼으로 바꿈(CSS 스타일 적용)
-            self.btnStartQA.setText("⏹ QA 중지")
-            self.btnStartQA.setStyleSheet("background-color: #E74C3C; color: white; font-weight: bold;")
-            
-            final_config = logic.config_finish(self) # 최종 config 딕셔너리 생성
-            logic.update_file_route(self, final_config) # 파일 경로를 UI에 띄움
-
-            self.worker = logic.QAWorker()
-            
-            self.worker.config = final_config # QThread에 최종 config 딕셔너리 전달
-            self.worker.log_signal.connect(lambda message: logic.update_realtime_log(self, message)) # 평소 로그
-            self.worker.error_signal.connect(lambda result_data: logic.show_qa_result(self, result_data)) # 에러 리포트
-            
-            self.worker.start()
-            
-        else: # 버튼 글씨가 '중지'일 경우
-            # QAWorker(QThread) 종료(퇴근 플래그)
-            if hasattr(self, 'worker') and self.worker.isRunning():
-                # hasattr == self에 worker가 있으면 True, 없으면 False
-                self.worker.is_running = False
-            
-            # 버튼 원상복구
-            self.btnStartQA.setText("▶ QA 시작")
-            self.btnStartQA.setStyleSheet("") # 스타일 초기화
-            
-            # (선택) 여기에 "테스트가 중지되었습니다. 기록이 삭제됩니다." 같은 팝업을 띄워도 됩니다.
-            print("🛑 사용자가 테스트를 강제 중지했습니다!")
+        if not self.state == thread.RunState.RUNNING: # 시작 안함            
+            qa_flow.qa_start(self)
+        else: # 시작함
+            qa_flow.qa_stop(self)
 
     def open_new_window(self):
         """
@@ -84,6 +85,39 @@ class QAUIapp(QMainWindow, QtStyleTools):
         """
         self.new_window = QAUIapp()  # 새 창 인스턴스 생성
         self.new_window.show()  # 새 창 표시
+
+    def closeEvent(self, event):
+        """
+        창 끄기(원래 있는 함수 덮어쓰기)
+        """
+        if menu_bar.close_application(self):
+            event.accept()      # 닫기 허용
+        else:
+            event.ignore()      # 닫기 취소
+
+    def resizeEvent(self, event):
+        """
+        폰트 반응형. Qt가 창 크기 변경 시 자동 호출
+        """
+        super().resizeEvent(event)
+        # print(f"[resize] 폭={self.width()} ratio={self.width()/self.BASE_WIDTH:.2f}")
+
+        # ── 가로/세로 중 더 빡빡한 쪽을 기준으로 ──
+        # 둘 다 봐야 "넓고 납작한 창"에서 글씨가 안 잘림
+        ratio = min(self.width()  / self.BASE_WIDTH,
+                    self.height() / self.BASE_HEIGHT)
+
+        ratio = max(self.MIN_RATIO, min(self.MAX_RATIO, ratio))
+
+        # 미세한 변화는 무시 (드래그 중 렉 방지)
+        if abs(ratio - self._last_ratio) < 0.03:
+            return
+        self._last_ratio = ratio
+
+        for widget, base in self._base_fonts.items():
+            font = widget.font()            # 패밀리·굵기는 그대로 두고
+            font.setPointSizeF(base * ratio)  # 크기만 교체
+            widget.setFont(font)
 
     # 가짜 ai 리포트
     dummy_ai_reports = {
@@ -117,9 +151,6 @@ class QAUIapp(QMainWindow, QtStyleTools):
         - 실제 결과: 뭐라고 해야하지 진짜?
         - 조치 권고: 알수없음."""
     }
-
-
-        
 
 
 if __name__ == "__main__":
