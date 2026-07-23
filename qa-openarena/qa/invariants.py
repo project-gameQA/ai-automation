@@ -32,7 +32,7 @@ class InvariantChecker:
         self.floor_margin = floor_margin    # 바닥 판정 여유. floor_z보다 이만큼 더 내려가야 낙하로 본다(노이즈 방지).
         self.bounds_margin = bounds_margin  # 수평 경계/천장 판정 여유.
         # 끼임 판정을 위한 엔티티별 이력을 저장하는 딕셔너리다.
-        # 키는 entity_id, 값은 {"x","y","z","last_move_time","reported"} 형태다.
+        # 키는 entity_id, 값은 {"x","y","z","last_move_time"} 형태다.
         self._history: dict[int, dict] = {}
 
     def check(self, sample: StateSample) -> list[Bug]:
@@ -66,14 +66,19 @@ class InvariantChecker:
     def _check_bounds(self, s: StateSample) -> Optional[Bug]:
         """엔티티가 맵의 수평 경계를 벗어나거나 천장을 넘었는지 판정한다."""
         m = self.bounds_margin  # 경계 여유를 짧은 이름으로 참조한다.
-        out_of_bounds = (        # 하나라도 참이면 경계를 벗어난 것이다.
-            s.x < self.bounds.min_x - m
-            or s.x > self.bounds.max_x + m
-            or s.y < self.bounds.min_y - m
-            or s.y > self.bounds.max_y + m
-            or s.z > self.bounds.ceiling_z + m
-        )
-        if out_of_bounds:  # 경계를 벗어났으면
+        # 각 축이 경계를 얼마나 넘어섰는지를 계산한다. 경계 안이면 음수가 나온다.
+        # 여기서 축별 초과량을 구해 두는 이유는, 집계 층이 "가장 심했던 순간"을 고를 때
+        # 쓸 수 있는 단일 수치가 필요하기 때문이다. x/y/z 세 값만으로는 어느 쪽이 더 심한
+        # 이탈인지 비교할 수 없다.
+        excesses = [
+            (self.bounds.min_x - m) - s.x,  # 서쪽 경계를 넘은 정도
+            s.x - (self.bounds.max_x + m),  # 동쪽 경계를 넘은 정도
+            (self.bounds.min_y - m) - s.y,  # 남쪽 경계를 넘은 정도
+            s.y - (self.bounds.max_y + m),  # 북쪽 경계를 넘은 정도
+            s.z - (self.bounds.ceiling_z + m),  # 천장을 넘은 정도
+        ]
+        overshoot = max(excesses)  # 가장 크게 넘어선 축의 초과량이 이 이탈의 대표 수치다.
+        if overshoot > 0:  # 하나라도 경계를 넘었으면(초과량이 양수이면)
             return Bug(
                 tick=s.tick,
                 time=s.time,
@@ -81,7 +86,7 @@ class InvariantChecker:
                 rule="out_of_bounds",
                 severity=Severity.HIGH,
                 message=f"위치({s.x:.1f}, {s.y:.1f}, {s.z:.1f}) 이(가) 맵 경계를 벗어났다.",
-                details={"x": s.x, "y": s.y, "z": s.z},
+                details={"x": s.x, "y": s.y, "z": s.z, "overshoot": overshoot},
             )
         return None
 
@@ -130,6 +135,11 @@ class InvariantChecker:
 
         과거 위치와 마지막으로 유의미하게 움직인 시각을 기억해야 하므로 내부
         이력(self._history)을 갱신하며 동작한다.
+
+        주의: 이전 버전은 같은 끼임을 한 번만 보고하도록 reported 플래그로 억제했다.
+        그때는 집계 층이 없어 검출기 안에서 중복을 막아야 했기 때문이다. 지금은 집계
+        층(qa/aggregate.py)이 중복을 묶으므로 그 억제를 제거했다. 다른 네 규칙과 마찬가지로
+        위반이 지속되는 동안 매 틱 보고하며, 그 덕분에 끼임도 지속 시간을 갖는 사건이 된다.
         """
         rec = self._history.get(s.entity_id)  # 이 엔티티의 이전 이력을 조회한다.
         if rec is None:  # 처음 보는 엔티티라면 비교할 과거가 없다.
@@ -138,7 +148,6 @@ class InvariantChecker:
                 "y": s.y,
                 "z": s.z,
                 "last_move_time": s.time,
-                "reported": False,
             }
             return None  # 초기화만 하고 판정하지 않는다.
         dx = s.x - rec["x"]  # 이전 유의미 위치로부터의 X 변위를 구한다.
@@ -148,16 +157,13 @@ class InvariantChecker:
         if moved > self.stuck_epsilon:  # 허용 오차보다 많이 움직였으면 정지 상태가 아니다.
             rec["x"], rec["y"], rec["z"] = s.x, s.y, s.z  # 유의미 위치를 현재로 갱신한다.
             rec["last_move_time"] = s.time                # 마지막 이동 시각을 현재로 갱신한다.
-            rec["reported"] = False                       # 다음 끼임을 다시 보고할 수 있도록 플래그를 해제한다.
             return None                                   # 움직였으므로 끼임이 아니다.
         if s.move_input <= 0:  # 이동 명령이 없으면(정상 대기) 끼임으로 보지 않는다.
             rec["last_move_time"] = s.time  # 정지 시간이 누적되지 않도록 기준 시각을 현재로 미룬다.
-            rec["reported"] = False         # 보고 플래그도 초기화한다.
             return None                     # 입력이 없으므로 판정하지 않는다.
         # 여기까지 왔다면: 이동 명령이 있었는데도 위치가 (허용 오차 이내로) 변하지 않았다.
         idle = s.time - rec["last_move_time"]  # 입력이 있는데 못 움직인 상태가 지속된 시간을 구한다.
-        if idle >= self.stuck_seconds and not rec["reported"]:  # 임계 시간을 넘었고 아직 보고 전이면
-            rec["reported"] = True  # 같은 끼임을 매 틱 중복 보고하지 않도록 플래그를 세운다.
+        if idle >= self.stuck_seconds:  # 임계 시간을 넘었으면 끼임으로 판정한다.
             return Bug(
                 tick=s.tick,
                 time=s.time,
@@ -167,4 +173,4 @@ class InvariantChecker:
                 message=f"이동 입력이 있는데 {idle:.1f}초간 위치가 변하지 않아 끼임으로 판정한다.",
                 details={"idle_seconds": idle, "position": [s.x, s.y, s.z]},
             )
-        return None  # 아직 임계에 못 미쳤거나 이미 보고했으면 판정하지 않는다.
+        return None  # 아직 임계 시간에 못 미쳤으면 판정하지 않는다.

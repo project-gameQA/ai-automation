@@ -1,0 +1,34 @@
+{
+  "reason": "telemetry_restart",
+  "telemetry": "C:\\Users\\human\\AppData\\Roaming\\OpenArena\\qa\\qa_telemetry.jsonl",
+  "samples_processed": 406,
+  "raw_detections": 723,
+  "events_total": 4,
+  "events_by_rule": {
+    "fell_through_floor": 2,
+    "impossible_velocity": 2
+  },
+  "last_game_time": 10.7,
+  "config": {
+    "bounds": {
+      "min_x": -852,
+      "max_x": 1721,
+      "min_y": -483,
+      "max_y": 2097,
+      "floor_z": -29,
+      "ceiling_z": 622
+    },
+    "max_speed": 1214,
+    "stuck_seconds": 2.0,
+    "stuck_epsilon": 2.0,
+    "max_possible_health": 250,
+    "gap_seconds": 0.5
+  },
+  "session_id": "20260723_140851",
+  "events_file": "session_20260723_140851.jsonl",
+  "telemetry_file": "session_20260723_140851.telemetry.jsonl",
+  "telemetry_bytes": 88393,
+  "started_at": 1784783331.9145148,
+  "ended_at": 1784783354.4250388,
+  "events_written": 4
+}
