@@ -44,11 +44,10 @@ sys.path.insert(0, str(PROJECT_ROOT))
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware  # 브라우저의 교차 출처 요청을 허용하기 위해 사용한다.
 
-from qa.telemetry import MapBounds
-from qa.invariants import InvariantChecker
-from qa.tail_source import TailSource        # 파일 끝을 따라가며 새 줄만 읽는 소스다.
-from qa.aggregate import BugAggregator, snapshot
-from qa.session_log import SessionLog        # 확정된 사건을 파일에 남기는 기록기다.
+from qa import config                      # 검출 설정값과 생성 함수를 한곳에서 가져온다.
+from qa.tail_source import TailSource      # 파일 끝을 따라가며 새 줄만 읽는 소스다.
+from qa.aggregate import snapshot
+from qa.session_log import SessionLog      # 확정된 사건을 파일에 남기는 기록기다.
 
 # ── 설정 ────────────────────────────────────────────────────────────────────
 # 감시할 텔레메트리 파일. 환경변수 QA_TELEMETRY 로 덮어쓸 수 있다.
@@ -62,40 +61,15 @@ SESSION_LOG_ENABLED = os.environ.get("QA_SESSION_LOG", "1") != "0"
 # 다시 분석할 방법이 영영 사라진다. 대신 세션 폴더가 시간당 수십 MB씩 늘어난다.
 ARCHIVE_TELEMETRY = os.environ.get("QA_ARCHIVE_TELEMETRY", "1") != "0"
 
-# 검출기 설정값. run_invariants.py 와 동일하게 유지해야 한다(맵마다 다른 보정값).
-# TODO: qa/config.py 같은 공용 설정으로 빼서 중복을 없앤다. 현재 run_invariants.py 의 값과
-#       불일치가 있어, 같은 텔레메트리에 CLI 와 서버가 다른 판정을 낼 수 있다.
-BOUNDS = MapBounds(min_x=-852, max_x=1721, min_y=-483, max_y=2097, floor_z=-29, ceiling_z=622)
-MAX_SPEED = 1214
-STUCK_SECONDS = 2.0
-STUCK_EPSILON = 2.0
-MAX_POSSIBLE_HEALTH = 250
-# 같은 (봇, 규칙) 탐지를 하나의 사건으로 묶을 시간 간격(초). 근거는 qa/aggregate.py 주석 참조.
-GAP_SECONDS = 0.5
+# 검출 경계값·임계값과 집계 간격은 qa/config.py 에 있다. run_invariants.py 도 같은 곳을
+# 보므로, 같은 텔레메트리를 CLI 와 서버에 넣으면 같은 판정이 나온다. 예전에는 두 파일에
+# 값이 각각 적혀 있어 한쪽만 고치면 결과가 어긋날 수 있었다.
+
+# 아래 둘은 검출 규칙이 아니라 이 서버의 운영 값이라 여기에 둔다.
 # 메모리에 유지할 최근 원시 탐지 수. 대조·검증이 목적이므로 최근 것만 있으면 충분하다.
 RAW_KEEP = 500
 # 응답 하나에 실어 보낼 기본 사건 수. 대시보드가 그리는 양과 맞춘다.
 DEFAULT_LIMIT = 300
-
-
-def detector_config() -> dict:
-    """세션 요약에 남길 검출 설정값이다.
-
-    "이 결과가 어떤 경계값과 임계값으로 나왔는가"를 기록에 함께 남기지 않으면, 나중에
-    세션 파일만 봤을 때 판정의 근거를 재구성할 수 없다.
-    """
-    return {
-        "bounds": {
-            "min_x": BOUNDS.min_x, "max_x": BOUNDS.max_x,
-            "min_y": BOUNDS.min_y, "max_y": BOUNDS.max_y,
-            "floor_z": BOUNDS.floor_z, "ceiling_z": BOUNDS.ceiling_z,
-        },
-        "max_speed": MAX_SPEED,
-        "stuck_seconds": STUCK_SECONDS,
-        "stuck_epsilon": STUCK_EPSILON,
-        "max_possible_health": MAX_POSSIBLE_HEALTH,
-        "gap_seconds": GAP_SECONDS,
-    }
 
 
 class LiveSession:
@@ -109,17 +83,10 @@ class LiveSession:
     def __init__(self) -> None:
         # 사건을 파일에 남길 기록기를 먼저 만든다(집계기의 콜백으로 연결해야 하기 때문이다).
         self.log = SessionLog(SESSION_DIR, archive_telemetry=ARCHIVE_TELEMETRY) if SESSION_LOG_ENABLED else None
-        self.checker = InvariantChecker(
-            bounds=BOUNDS,
-            max_speed=MAX_SPEED,
-            stuck_seconds=STUCK_SECONDS,
-            stuck_epsilon=STUCK_EPSILON,
-            max_possible_health=MAX_POSSIBLE_HEALTH,
-        )
+        self.checker = config.build_checker()  # 공용 설정으로 검출기를 만든다.
         # 사건이 닫힐 때마다 파일에 한 줄씩 덧붙이도록 콜백을 건다.
-        self.aggregator = BugAggregator(
-            gap_seconds=GAP_SECONDS,
-            on_close=(self.log.append_event if self.log else None),
+        self.aggregator = config.build_aggregator(
+            on_close=(self.log.append_event if self.log else None)
         )
         # 최근 원시 탐지만 유지하는 링 버퍼다. maxlen 을 넘으면 오래된 것부터 자동으로 밀려난다.
         self.recent_raw: deque = deque(maxlen=RAW_KEEP)
@@ -169,7 +136,7 @@ class LiveSession:
             "events_total": len(events),            # 사건 수
             "events_by_rule": by_rule,              # 규칙별 사건 수
             "last_game_time": self.last_time,       # 텔레메트리가 어디까지 기록됐는지
-            "config": detector_config(),            # 어떤 설정으로 판정했는지(재현성)
+            "config": config.as_dict(),             # 어떤 설정으로 판정했는지(재현성)
         })
         result.update({
             "session_id": self.log.session_id,
@@ -195,15 +162,35 @@ _session = LiveSession()
 _lock = threading.Lock()
 
 
+def _start_session(seed_pending: bool) -> None:
+    """새 세션을 시작한다. 잠금 안에서만 호출한다.
+
+    seed_pending 은 "아직 완결되지 않은 줄 조각을 새 사본의 맨 앞에 넣을지"를 뜻하며,
+    세션이 바뀌는 세 경우에 값이 다르다. 이 차이를 놓치면 사본이 조각난 줄로 시작하거나
+    같은 바이트가 두 번 기록된다.
+
+    - 수동 내보내기(/api/export): **True.** 읽기 위치와 버퍼가 그대로 유지된다. 보류 중인
+      조각은 이전 세션 사본에 이미 들어가 있고 다음 읽기는 그 줄 중간부터 시작하므로,
+      새 사본을 이 조각으로 시작해야 첫 줄이 온전해진다.
+    - 수동 리셋(/api/reset): **False.** 소스를 reset() 하므로 버퍼가 비고 파일을 처음부터
+      다시 읽는다. 넣을 조각이 없다.
+    - 게임 재시작 감지(_poll): **False.** poll() 안에서 이미 버퍼를 비우고 새 파일을 읽었다.
+      이 시점의 보류 조각은 방금 읽은 raw 안에 이미 들어 있으므로, 넣으면 중복된다.
+    """
+    global _session
+    _session = LiveSession()
+    if seed_pending and _session.log is not None:
+        _session.log.archive(_source.pending)
+
+
 def _poll() -> None:
     """새 텔레메트리를 읽어 현재 세션에 반영한다. 잠금 안에서만 호출한다."""
-    global _session
     result = _source.poll()
     if result.restarted:
         # 파일이 잘렸다는 것은 새 매치가 시작됐다는 뜻이다. 이전 세션을 마감해 파일에 남기고,
         # 검출기·집계기·기록기를 전부 새로 만든다. 옛 끼임 이력이 새 매치로 넘어가면 안 된다.
         _session.finish(TELEMETRY_PATH, reason="telemetry_restart")
-        _session = LiveSession()
+        _start_session(seed_pending=False)  # 사유는 _start_session 설명 참조.
     # 사본 쓰기는 세션 교체 이후에 한다. 순서가 중요하다. 파일이 초기화된 폴링에서 읽은
     # 바이트는 이미 '새 매치'의 것이므로, 먼저 쓰면 이전 매치의 사본에 섞여 들어간다.
     if result.raw:
@@ -250,7 +237,7 @@ def events(limit: int = DEFAULT_LIMIT):
             "count": len(all_events),                # 전체 사건 수
             "returned": len(recent),                 # 이번 응답에 담긴 수
             "raw_count": _session.aggregator.raw_count,  # 집계 전 원시 탐지 수(누적)
-            "gap_seconds": GAP_SECONDS,              # 어떤 기준으로 묶었는지 함께 밝힌다.
+            "gap_seconds": config.GAP_SECONDS,       # 어떤 기준으로 묶었는지 함께 밝힌다.
             "last_time": _session.last_time,         # 텔레메트리가 어디까지 기록됐는지
             "samples": _session.sample_count,        # 지금까지 처리한 텔레메트리 줄 수
             "skipped_lines": _source.skipped,        # 파싱 실패로 건너뛴 줄 수(조용히 묻히지 않게 노출)
@@ -305,13 +292,13 @@ def export():
     세션을 끊지 않고 지금까지의 결과를 확정하고 싶을 때 쓴다. 요약 파일은 다시 쓰이고,
     진행 중이던 사건은 파일에 한 줄 추가된다.
     """
-    global _session
     with _lock:
         _poll()
         info = _session.finish(TELEMETRY_PATH, reason="manual_export")
         # 기록기를 닫았으므로 같은 세션을 이어가려면 새 세션 객체가 필요하다. 다만 텔레메트리
         # 읽기 위치는 유지하므로, 이미 읽은 줄을 다시 읽지는 않는다.
-        _session = LiveSession()
+        # 보류 중인 줄 조각을 새 사본 앞에 넣어야 첫 줄이 온전해진다(_start_session 설명 참조).
+        _start_session(seed_pending=True)
         return {"exported": True, **info}
 
 
@@ -322,11 +309,10 @@ def reset():
     새 매치를 시작했는데 텔레메트리 파일이 잘리지 않고 이어 쓰이는 경우처럼, 자동 감지가
     동작하지 않는 상황에서 수동으로 상태를 비울 때 쓴다.
     """
-    global _session
     with _lock:
         info = _session.finish(TELEMETRY_PATH, reason="manual_reset")
-        _source.reset()          # 읽기 위치를 파일 처음으로 되돌린다.
-        _session = LiveSession()  # 검출기·집계기·기록기를 모두 새로 만든다.
+        _source.reset()                      # 읽기 위치를 파일 처음으로 되돌린다(버퍼도 비워진다).
+        _start_session(seed_pending=False)   # 넣을 조각이 없다. 사유는 _start_session 설명 참조.
         return {"reset": True, "previous": info}
 
 

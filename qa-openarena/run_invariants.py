@@ -18,37 +18,35 @@
 
 import sys  # 커맨드라인 인자를 받기 위해 사용한다.
 
-from qa.telemetry import MapBounds
-from qa.invariants import InvariantChecker
-from qa.replay_source import iter_samples_from_jsonl
-from qa.aggregate import BugAggregator, PEAK_LABEL  # 서버와 동일한 집계 층을 재사용한다.
+from qa import config  # 검출 설정값과 생성 함수를 한곳에서 가져온다.
+from qa.replay_source import iter_samples_from_jsonl, SkipCounter
+from qa.aggregate import PEAK_LABEL  # 극값의 사람이 읽는 이름을 가져온다.
 
-# 검출 설정값이다. dashboard/server/app.py 와 같은 값을 유지해야 한다.
-# TODO: qa/config.py 공용 설정으로 빼서 중복을 없앤다. 지금은 두 곳에 같은 값이 적혀 있어
-#       한쪽만 고치면 CLI 와 서버가 같은 텔레메트리에 다른 판정을 낸다.
-BOUNDS = MapBounds(min_x=-852, max_x=1721, min_y=-483, max_y=2097, floor_z=-29, ceiling_z=622)
-MAX_SPEED = 1214
-STUCK_SECONDS = 2.0
-STUCK_EPSILON = 2.0
-MAX_POSSIBLE_HEALTH = 250
-GAP_SECONDS = 0.5
+# 경계값·임계값은 qa/config.py 에 있다. 서버(dashboard/server/app.py)도 같은 곳을 보므로,
+# 같은 텔레메트리를 CLI 와 서버에 넣으면 같은 판정이 나온다. 예전에는 두 파일에 값이 각각
+# 적혀 있어 한쪽만 고치면 결과가 어긋날 수 있었다.
+
+
+def _report_skipped(skipped) -> None:
+    """건너뛴 줄이 있으면 알린다. 조용히 묻히면 데이터가 온전한지 알 수 없다."""
+    if skipped.count == 0:
+        return
+    print(f"\n건너뛴 줄 {skipped.count}개 (줄 번호 {skipped.first_line}~{skipped.last_line})")
+    print("  텔레메트리 파일과 세션 사본은 첫 줄이나 마지막 줄이 완결되지 않을 수 있다.")
+    print("  게임이 기록하는 도중에 세션이 끝나면 마지막 줄이 절반만 쓰인 상태로 남기 때문이다.")
+    print("  몇 줄 수준이면 정상이며, 수가 많다면 파일이 손상됐거나 형식이 다른 것이다.")
 
 
 def main(path: str, raw: bool = False) -> int:
     """텔레메트리 파일을 처리하고 사건(또는 원시 탐지) 수를 반환한다."""
-    checker = InvariantChecker(
-        bounds=BOUNDS,
-        max_speed=MAX_SPEED,
-        stuck_seconds=STUCK_SECONDS,
-        stuck_epsilon=STUCK_EPSILON,
-        max_possible_health=MAX_POSSIBLE_HEALTH,
-    )
-    aggregator = BugAggregator(gap_seconds=GAP_SECONDS)
+    checker = config.build_checker()      # 공용 설정으로 검출기를 만든다.
+    aggregator = config.build_aggregator()  # 공용 설정으로 집계기를 만든다.
 
     raw_total = 0     # 집계 전 원시 탐지 수
     last_time = None  # 텔레메트리의 마지막 게임 시간
+    skipped = SkipCounter()  # 파싱에 실패해 건너뛴 줄을 센다.
 
-    for sample in iter_samples_from_jsonl(path):  # 텔레메트리를 한 틱씩 읽는다.
+    for sample in iter_samples_from_jsonl(path, on_skip=skipped):  # 텔레메트리를 한 틱씩 읽는다.
         last_time = sample.time
         for bug in checker.check(sample):         # 그 틱에서 나온 버그들을 순회한다.
             raw_total += 1
@@ -61,6 +59,8 @@ def main(path: str, raw: bool = False) -> int:
 
     aggregator.finalize(last_time)  # 스트림 끝을 알려 남은 사건의 진행 중 여부를 확정한다.
     events = aggregator.events()
+
+    _report_skipped(skipped)
 
     if raw:  # 원시 모드에서는 요약만 덧붙이고 끝낸다.
         print(f"\n원시 탐지 {raw_total}건 (집계하면 {len(events)}개 사건)")
