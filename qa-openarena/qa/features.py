@@ -159,6 +159,7 @@ def compute_features(samples: list[StateSample]) -> Optional[WindowFeatures]:
 
     표본이 너무 적으면 None을 돌려준다. 통계가 요동치는 창을 학습에 넣지 않기 위해서다.
     """
+    # 표본 수 검사는 WindowExtractor 가 먼저 하지만, 이 함수를 직접 부르는 경우를 위해 남긴다.
     if len(samples) < MIN_SAMPLES_PER_WINDOW:
         return None
 
@@ -258,32 +259,34 @@ def compute_features(samples: list[StateSample]) -> Optional[WindowFeatures]:
     )
 
 
-class FeatureExtractor:
-    """상태를 하나씩 받아 창이 완성될 때마다 특징을 내놓는 상태 기계다.
+class WindowExtractor:
+    """상태를 하나씩 받아 창이 완성될 때마다 지정한 함수를 호출하는 범용 상태 기계다.
+
+    창을 자르는 로직 자체는 어떤 특징을 뽑든 동일하므로 여기 한 곳에만 둔다. 이동 특징과
+    활동 특징이 각자 이 로직을 복제하면, 미묘한 차이가 생겨도 한참 뒤에야 드러난다.
+    실제로 이 프로젝트에서 같은 성격의 버그를 두 번 겪었다(끼임 중복 억제, 사본 경계).
 
     봇마다 별도의 버퍼를 둔다. 봇을 섞으면 서로 다른 개체의 이동이 한 창에 뒤엉킨다.
 
-    사용법:
-        extractor = FeatureExtractor()
-        for sample in samples:
-            for window in extractor.feed(sample):
-                ...
-        for window in extractor.finalize():
-            ...
+    compute_fn 은 한 창의 상태 목록을 받아 결과 객체 또는 None(버릴 창)을 반환한다.
     """
 
     def __init__(
         self,
-        window_seconds: float = DEFAULT_WINDOW_SECONDS,
-        step_seconds: float = DEFAULT_STEP_SECONDS,
+        window_seconds: float,
+        step_seconds: float,
+        min_samples: int,
+        compute_fn,
     ) -> None:
         self.window_seconds = window_seconds
         self.step_seconds = step_seconds
+        self.min_samples = min_samples   # 이보다 표본이 적은 창은 통계가 요동쳐 버린다.
+        self.compute_fn = compute_fn
         # 봇별 상태: {"samples": [...], "start": 창 시작 시각}
         self._buffers: dict[int, dict] = {}
 
-    def feed(self, sample: StateSample) -> list[WindowFeatures]:
-        """상태 하나를 넣고, 이번에 완성된 창들의 특징을 반환한다.
+    def feed(self, sample: StateSample) -> list:
+        """상태 하나를 넣고, 이번에 완성된 창들의 결과를 반환한다.
 
         상태가 하나 들어왔을 때 창이 여러 개 완성될 수 있다. 기록이 한동안 끊겼다가
         재개되면 그 사이의 창들이 한꺼번에 마감되기 때문이다. 그래서 리스트를 반환한다.
@@ -294,42 +297,63 @@ class FeatureExtractor:
             return []
 
         buf["samples"].append(sample)
-        done: list[WindowFeatures] = []
+        done: list = []
 
         # 창의 끝을 넘어섰으면 창을 마감하고 시작점을 한 칸 옮긴다.
         # while 인 이유는 위에 적은 대로 한 번에 여러 창이 마감될 수 있기 때문이다.
         while sample.time >= buf["start"] + self.window_seconds:
             window_end = buf["start"] + self.window_seconds
-            # 이번 창에 속하는 표본만 고른다.
             in_window = [s for s in buf["samples"] if buf["start"] <= s.time < window_end]
-            feats = compute_features(in_window)
-            if feats is not None:  # 표본이 너무 적은 창은 버린다.
-                done.append(feats)
-            # 창 시작점을 step 만큼 옮긴다.
+            if len(in_window) >= self.min_samples:
+                result = self.compute_fn(in_window)
+                if result is not None:
+                    done.append(result)
             buf["start"] += self.step_seconds
             # 새 창 시작보다 오래된 표본은 다시 쓰이지 않으므로 버린다. 메모리가 계속 늘지 않게 한다.
             buf["samples"] = [s for s in buf["samples"] if s.time >= buf["start"]]
 
         return done
 
-    def finalize(self) -> list[WindowFeatures]:
+    def finalize(self) -> list:
         """스트림이 끝난 뒤, 남은 표본으로 마지막 창을 만들 수 있으면 만든다.
 
         창 길이를 다 채우지 못한 꼬리는 버린다. 짧은 창은 같은 특징이라도 다른 의미를 갖기
         때문이다(예: 2초 동안의 이동거리와 5초 동안의 이동거리를 같은 값으로 볼 수 없다).
         """
-        done: list[WindowFeatures] = []
+        done: list = []
         for buf in self._buffers.values():
             samples = buf["samples"]
-            if not samples:
+            if len(samples) < self.min_samples:
                 continue
-            # 남은 표본이 창 길이를 채웠을 때만 마감한다.
             if samples[-1].time - buf["start"] >= self.window_seconds * 0.99:
-                feats = compute_features(samples)
-                if feats is not None:
-                    done.append(feats)
+                result = self.compute_fn(samples)
+                if result is not None:
+                    done.append(result)
         done.sort(key=lambda w: (w.start_time, w.entity_id))
         return done
+
+
+class FeatureExtractor(WindowExtractor):
+    """이동 특징 전용 창 추출기다. 범용 WindowExtractor 에 이동 특징 계산을 끼운 것이다.
+
+    주의(2026-07-23): 이 이동 특징들은 **현재 이상탐지 오라클에서 사용하지 않는다.**
+    60초 척도에서 실측한 결과 정상 세션끼리도 18.8%를 이상으로 판정해, 신호가 아니라
+    노이즈로 작동했다. 짧은 척도에서 쓸모가 있을 가능성은 남아 있으나 그것을 입증할
+    시험 데이터를 아직 확보하지 못했다. 상세는 docs/process.md 참조.
+    분석 도구(tools/extract_features.py)에서는 여전히 유용하므로 남겨 둔다.
+    """
+
+    def __init__(
+        self,
+        window_seconds: float = DEFAULT_WINDOW_SECONDS,
+        step_seconds: float = DEFAULT_STEP_SECONDS,
+    ) -> None:
+        super().__init__(
+            window_seconds=window_seconds,
+            step_seconds=step_seconds,
+            min_samples=MIN_SAMPLES_PER_WINDOW,
+            compute_fn=compute_features,
+        )
 
 
 def extract_all(samples: Iterator[StateSample], **kwargs) -> list[WindowFeatures]:

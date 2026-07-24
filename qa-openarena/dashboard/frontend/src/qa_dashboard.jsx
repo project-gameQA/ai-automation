@@ -111,12 +111,19 @@ export default function QADashboard() {
   const [skipped, setSkipped] = useState(0);       // 파싱 실패로 건너뛴 줄 수
   const [sessionId, setSessionId] = useState(null); // 현재 세션 식별자(파일 이름과 같다)
   const [archived, setArchived] = useState(0);     // 세션 폴더에 복사해 둔 텔레메트리 바이트
+  const [anomaly, setAnomaly] = useState(null);    // 이상탐지 상태와 결과 목록
+  const [watchdog, setWatchdog] = useState(null);  // 워치독(성능·크래시) 상태
   const [fetchedAt, setFetchedAt] = useState(null); // 마지막으로 받아온 시각(브라우저 기준)
   /*
     상세 패널의 선택은 사건 객체가 아니라 사건 번호로 들고 있다.
     1초마다 목록을 새로 받으므로, 객체를 붙들고 있으면 갱신될 때마다 참조가 끊겨 패널이 닫힌다.
     번호로 들고 매번 현재 목록에서 찾으면, 진행 중인 사건의 지속 시간과 프레임 수가 패널에서도
     실시간으로 늘어난다.
+  */
+  /*
+    상세 패널의 선택이다. { kind: "event" | "anomaly", id } 형태로 들고 있다.
+    종류를 함께 두는 이유는 사건과 이상 항목이 서로 다른 목록에서 오고 번호도 각자 매기기
+    때문이다. 번호만으로는 어느 쪽인지 알 수 없다.
   */
   const [selectedId, setSelectedId] = useState(null);
   const [paused, setPaused] = useState(false);  // 탭이 가려졌거나 사용자가 멈춘 상태인지
@@ -148,6 +155,8 @@ export default function QADashboard() {
       setSkipped(data.skipped_lines || 0);
       setSessionId(data.session_id || null);
       setArchived(data.telemetry_bytes || 0);
+      setAnomaly(data.anomaly || null);
+      setWatchdog(data.watchdog || null);
       setSource(data.source || "");
       setFetchedAt(new Date());
       setStatus("ok");
@@ -234,8 +243,13 @@ export default function QADashboard() {
   const maxCount = Math.max(1, ...Object.values(stats.counts));
   // 실제로 그릴 행만 잘라 낸다.
   const visible = events.slice(0, MAX_ROWS);
-  // 선택된 사건을 현재 목록에서 매번 다시 찾는다. 진행 중인 사건이면 값이 계속 갱신된다.
-  const selected = events.find((e) => e.id === selectedId) || null;
+  // 선택된 항목을 현재 목록에서 매번 다시 찾는다. 진행 중인 사건이면 값이 계속 갱신된다.
+  const selected = selectedId && selectedId.kind === "event"
+    ? events.find((e) => e.id === selectedId.id) || null
+    : null;
+  const selectedAnomaly = selectedId && selectedId.kind === "anomaly" && anomaly
+    ? (anomaly.items || []).find((a) => a.id === selectedId.id) || null
+    : null;
 
   /*
     내보내기와 새 세션은 서버 상태를 바꾸는 동작이라 POST 로 보낸다.
@@ -307,6 +321,9 @@ export default function QADashboard() {
           </div>
         </header>
 
+        {/* 워치독: 게임 프로세스 상태. 봇이 아니라 게임 자체를 보는 층이라 별도 줄에 둔다. */}
+        <WatchdogStrip data={watchdog} />
+
         {/* 내보내기·새 세션 결과 안내. 몇 초 뒤 스스로 사라진다. */}
         {notice && (
           <div style={{ fontFamily: MONO, fontSize: 11, color: C.cyan, background: C.panel, border: `1px solid ${C.line}`, borderRadius: 6, padding: "7px 11px", marginBottom: 12 }}>
@@ -342,15 +359,14 @@ export default function QADashboard() {
               </div>
             </Panel>
 
-            {/* 이상탐지 자리 (준비 중) */}
+            {/* 이상탐지 결과 */}
             <Panel title="이상 구간" tag="ANOMALY">
-              <div style={{ border: `1px dashed ${C.line}`, borderRadius: 6, padding: "18px 12px", textAlign: "center" }}>
-                <div style={{ width: 10, height: 10, borderRadius: "50%", background: C.anomaly, opacity: 0.6, margin: "0 auto 8px" }} />
-                <div style={{ fontFamily: MONO, fontSize: 11, color: C.dim }}>이상탐지 · 준비 중</div>
-                <div style={{ fontSize: 10.5, color: C.faint, marginTop: 5, lineHeight: 1.5 }}>
-                  규칙은 안 어기지만<br />정상 패턴에서 벗어난 구간이<br />여기에 표시된다
-                </div>
-              </div>
+              <AnomalyPanel
+                data={anomaly}
+                samples={samples}
+                selectedId={selectedId}
+                onSelect={(id) => setSelectedId({ kind: "anomaly", id })}
+              />
             </Panel>
           </div>
 
@@ -388,7 +404,7 @@ export default function QADashboard() {
                 const col = e.sev === "HIGH" ? C.high : C.med;
                 const on = selected && selected.id === e.id;
                 return (
-                  <div key={e.id} className="qa-row" onClick={() => setSelectedId(e.id)} style={{
+                  <div key={e.id} className="qa-row" onClick={() => setSelectedId({ kind: "event", id: e.id })} style={{
                     display: "flex", gap: 10, alignItems: "flex-start", padding: "9px 10px 9px 8px",
                     borderBottom: `1px solid ${C.line}`, borderLeft: `2px solid ${col}`,
                     background: on ? C.panelHi : C.row, marginBottom: 4, borderRadius: "0 5px 5px 0",
@@ -425,13 +441,17 @@ export default function QADashboard() {
           {/* 우: 상세 보기 */}
           <Panel title="상세 보기" tag="INSPECT">
             <div className="qa-detail" style={{ height: 560, overflowY: "auto" }}>
-              {!selected ? (
+              {!selected && !selectedAnomaly ? (
                 <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100%", gap: 8, textAlign: "center" }}>
                   <Crosshair size={26} dim />
-                  <div style={{ fontFamily: MONO, fontSize: 11.5, color: C.dim }}>사건을 선택하세요</div>
-                  <div style={{ fontSize: 10.5, color: C.faint, maxWidth: 200, lineHeight: 1.5 }}>왼쪽 목록에서 항목을 클릭하면 시작 순간과 가장 심했던 순간이 여기 표시된다</div>
+                  <div style={{ fontFamily: MONO, fontSize: 11.5, color: C.dim }}>항목을 선택하세요</div>
+                  <div style={{ fontSize: 10.5, color: C.faint, maxWidth: 200, lineHeight: 1.5 }}>버그 사건이나 이상 구간을 클릭하면 상세가 여기 표시된다</div>
                 </div>
-              ) : <Detail e={selected} onClose={() => setSelectedId(null)} />}
+              ) : selectedAnomaly ? (
+                <AnomalyDetail a={selectedAnomaly} threshold={anomaly && anomaly.threshold} onClose={() => setSelectedId(null)} />
+              ) : selected ? (
+                <Detail e={selected} onClose={() => setSelectedId(null)} />
+              ) : null}
             </div>
           </Panel>
         </section>
@@ -512,6 +532,249 @@ function Detail({ e, onClose }) {
     </div>
   );
 }
+
+
+/*
+  이상탐지 패널이다.
+
+  하드 인바리언트 사건과 목록을 섞지 않고 따로 둔다. 하드 인바리언트는 "규칙을 어겼다"는
+  확정이고, 이상탐지는 "여기를 검사하라"는 단서다. 한 목록에 섞으면 단서가 확정처럼 보인다.
+
+  상태를 네 가지로 나눠 보여 준다. 비어 있는 이유를 화면만 보고 알 수 있어야 하기 때문이다.
+  - 모델 없음: 아직 학습하지 않았다. 하드 인바리언트는 그대로 동작한다.
+  - 창 채우는 중: 창이 60초라 세션 시작 직후에는 결과가 없는 것이 정상이다.
+  - 이상 없음: 채점은 하고 있는데 벗어난 구간이 없다.
+  - 목록: 이상 구간들
+*/
+
+/*
+  워치독(③) 표시줄이다.
+
+  오라클 ①·②와 관측 대상이 다르다. 앞의 둘은 봇의 상태를 보지만 이쪽은 게임 프로세스 자체를
+  본다. 그래서 사건 목록이나 이상 구간 패널에 섞지 않고 헤더 아래 한 줄로 따로 둔다.
+
+  틱은 서버 틱이지 클라이언트 렌더 FPS 가 아니다. 화면이 몇 프레임으로 그려지는지는
+  텔레메트리에 없다. 라벨에 "서버 틱"이라 적어 오해를 막는다.
+*/
+function WatchdogStrip({ data }) {
+  if (!data) return null;
+
+  const active = (data.alerts || []).filter((a) => a.ongoing);
+  const has = active.length > 0;
+  // "진행 없음"은 진짜 행과 메뉴·점수판 구간을 구분하지 못한다. 셋 다 텔레메트리가 멈추고
+  // 프로세스는 살아 있는 상태로 보인다. 그래서 "행"이라 단정하지 않고 사실만 적는다.
+  const kindLabel = { low_tick: "성능 저하", no_progress: "진행 없음", process_gone: "프로세스 종료" };
+  // 상태를 함께 보여 준다. 게임을 켜지 않았거나 밀린 기록을 읽는 중인 것은 이상이 아니다.
+  const stateLabel = { idle: "게임 대기 중", catching_up: "기록 따라잡는 중", live: "감시 중" };
+
+  // 틱이 목표 대비 얼마나 되는지로 색을 정한다. 경보 기준선 아래면 붉게 표시한다.
+  const ratio = data.tick_ratio;
+  const tickColor = ratio === null || ratio === undefined ? C.dim
+    : ratio < data.tick_ratio_alert ? C.high
+    : ratio < 0.95 ? C.med : C.cyan;
+
+  return (
+    <div style={{
+      display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap",
+      background: C.panel, border: `1px solid ${active.some((a) => a.kind !== "no_progress") ? C.high : has ? C.med : C.line}`,
+      borderRadius: 8, padding: "8px 13px", marginBottom: 12,
+    }}>
+      <span style={{ fontFamily: MONO, fontSize: 9.5, color: C.dim, letterSpacing: 2 }}>WATCHDOG</span>
+      <Stat label="상태" color={data.state === "live" ? C.cyan : C.dim}
+        value={stateLabel[data.state] || data.state} />
+
+      <Stat label="서버 틱" color={tickColor}
+        value={data.tick_rate === null || data.tick_rate === undefined
+          ? "—" : `${data.tick_rate} / ${data.target_tick}`} />
+
+      {/* psutil 이 없거나 게임을 못 찾으면 이 값들이 비어 있다. 그 사실을 숨기지 않는다. */}
+      <Stat label="CPU" value={data.cpu_percent === null || data.cpu_percent === undefined ? "—" : `${data.cpu_percent}%`} />
+      <Stat label="메모리" value={data.memory_mb === null || data.memory_mb === undefined ? "—" : `${data.memory_mb} MB`} />
+      <Stat label="프로세스"
+        color={data.process_alive === true ? C.cyan : data.process_alive === false ? C.high : C.dim}
+        value={data.process_alive === true ? "실행 중" : data.process_alive === false ? "없음" : "확인 불가"} />
+
+      <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 10 }}>
+        {has ? (
+          active.map((a) => {
+            // 진행 없음은 메뉴나 점수판일 수도 있으므로 경고색으로 둔다. 확정이 아니다.
+            const col = a.kind === "no_progress" ? C.med : C.high;
+            return (
+              <span key={a.kind} style={{
+                fontFamily: MONO, fontSize: 11, color: col,
+                border: `1px solid ${col}`, borderRadius: 4, padding: "2px 8px",
+              }}>
+                {kindLabel[a.kind] || a.kind} {a.duration}초
+              </span>
+            );
+          })
+        ) : (
+          <span style={{ fontFamily: MONO, fontSize: 10.5, color: C.dim }}>
+            {data.state !== "live"
+              ? "텔레메트리를 기다리는 중 (판정 안 함)"
+              : data.alert_count ? `누적 경보 ${data.alert_count}건` : "이상 없음"}
+          </span>
+        )}
+        {!data.process_monitor && (
+          // 프로세스 감시가 꺼진 이유를 화면에 남긴다. 값이 비어 있는 것과 감시가 없는 것은 다르다.
+          <span style={{ fontFamily: MONO, fontSize: 9.5, color: C.faint }}>
+            프로세스 감시 꺼짐
+          </span>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function Stat({ label, value, color }) {
+  return (
+    <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
+      <span style={{ fontFamily: MONO, fontSize: 9.5, color: C.dim }}>{label}</span>
+      <span style={{ fontFamily: MONO, fontSize: 12, color: color || C.text }}>{value}</span>
+    </div>
+  );
+}
+
+function AnomalyPanel({ data, samples, selectedId, onSelect }) {
+  if (!data) {
+    return <PanelNote>서버 응답을 기다리는 중이다.</PanelNote>;
+  }
+  if (!data.enabled) {
+    return (
+      <div>
+        <PanelNote>
+          모델이 없어 이상탐지가 꺼져 있다.<br />
+          하드 인바리언트는 그대로 동작한다.
+        </PanelNote>
+        <div style={{ fontFamily: MONO, fontSize: 9.5, color: C.faint, marginTop: 8, lineHeight: 1.5 }}>
+          학습:<br />python tools/train_anomaly.py &lt;정상 세션&gt;
+        </div>
+      </div>
+    );
+  }
+
+  const items = data.items || [];
+  const scored = data.windows_scored || 0;
+
+  return (
+    <div>
+      {/* 채점 현황. 이상이 0건일 때 '고장난 것'과 '정상인 것'을 구분하려면 이 숫자가 필요하다. */}
+      <div style={{ display: "flex", justifyContent: "space-between", fontFamily: MONO, fontSize: 10.5, color: C.dim, marginBottom: 9 }}>
+        <span>채점한 창 {scored.toLocaleString()}</span>
+        <span style={{ color: data.count ? C.anomaly : C.dim }}>이상 {data.count || 0}</span>
+      </div>
+
+      {scored === 0 ? (
+        <PanelNote>
+          {samples > 0
+            ? `첫 창을 채우는 중이다. 창이 ${data.window_seconds}초라 그만큼 쌓여야 첫 결과가 나온다.`
+            : "텔레메트리가 아직 들어오지 않았다."}
+        </PanelNote>
+      ) : items.length === 0 ? (
+        <PanelNote>정상 패턴에서 벗어난 구간이 아직 없다.</PanelNote>
+      ) : (
+        <div style={{ maxHeight: 210, overflowY: "auto", margin: "0 -2px" }} className="qa-log">
+          {items.slice(0, 40).map((a) => {
+            const on = selectedId && selectedId.kind === "anomaly" && selectedId.id === a.id;
+            return (
+              <div key={a.id} className="qa-row" onClick={() => onSelect(a.id)} style={{
+                borderLeft: `2px solid ${C.anomaly}`, background: on ? C.panelHi : C.row,
+                borderRadius: "0 4px 4px 0", padding: "5px 7px", marginBottom: 3,
+                outline: on ? `1px solid ${C.anomaly}` : "none",
+              }}>
+                <div style={{ display: "flex", justifyContent: "space-between", fontFamily: MONO, fontSize: 10 }}>
+                  <span style={{ color: C.text }}>BOT {a.entity_id}</span>
+                  <span style={{ color: C.dim }}>{clock(a.start_time)}</span>
+                </div>
+                {/* 원인 특징을 함께 보여 준다. 점수만으로는 무엇을 검사할지 알 수 없다. */}
+                <div style={{ fontSize: 10, color: C.dim, marginTop: 2 }}>
+                  {a.top_feature_label} <span style={{ color: C.anomaly }}>{a.top_feature_z > 0 ? "+" : ""}{a.top_feature_z}σ</span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      <div style={{ fontFamily: MONO, fontSize: 9.5, color: C.faint, marginTop: 9, lineHeight: 1.5, borderTop: `1px solid ${C.line}`, paddingTop: 8 }}>
+        결론이 아니라 단서다. {data.window_seconds}초 창, 학습 데이터 {data.percentile}% 기준선.
+      </div>
+    </div>
+  );
+}
+
+function PanelNote({ children }) {
+  return (
+    <div style={{ border: `1px dashed ${C.line}`, borderRadius: 6, padding: "14px 11px", textAlign: "center", fontSize: 10.5, color: C.faint, lineHeight: 1.6 }}>
+      {children}
+    </div>
+  );
+}
+
+/* 이상 구간 하나의 상세다. 어떤 특징이 얼마나 벗어났는지를 전부 보여 준다. */
+function AnomalyDetail({ a, threshold, onClose }) {
+  const entries = Object.keys(a.contributions || {});
+  return (
+    <div>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
+        <div>
+          <div style={{ fontFamily: MONO, fontSize: 13, color: C.anomaly, fontWeight: 600 }}>이상 구간</div>
+          <div style={{ fontSize: 10.5, color: C.faint, marginTop: 2 }}>BOT {a.entity_id} · {clock(a.start_time)} ~ {clock(a.end_time)}</div>
+        </div>
+        <button onClick={onClose} style={{ background: "none", border: `1px solid ${C.line}`, color: C.dim, borderRadius: 4, fontFamily: MONO, fontSize: 11, padding: "2px 7px", cursor: "pointer" }}>✕</button>
+      </div>
+
+      <div style={{ background: C.row, border: `1px solid ${C.line}`, borderLeft: `2px solid ${C.anomaly}`, borderRadius: 5, padding: "9px 11px", fontSize: 12, color: C.text, lineHeight: 1.5, marginBottom: 14 }}>
+        {a.top_feature_label}이(가) 정상 범위에서 {Math.abs(a.top_feature_z)}표준편차 벗어났다.
+      </div>
+
+      <Section label="특징별 벗어난 정도">
+        {entries.map((k) => {
+          const z = a.contributions[k];
+          const v = a.values[k];
+          const strong = Math.abs(z) >= 2;
+          return (
+            <div key={k} style={{ padding: "5px 0", borderBottom: "1px solid #1B252C" }}>
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <span style={{ fontSize: 11.5, color: strong ? C.text : C.dim }}>{ANOMALY_LABEL[k] || k}</span>
+                <span style={{ fontFamily: MONO, fontSize: 11.5, color: strong ? C.anomaly : C.dim }}>
+                  {v} ({z > 0 ? "+" : ""}{z}σ)
+                </span>
+              </div>
+              {/* 벗어난 정도를 막대로 보여 준다. 가운데가 정상 평균이다. */}
+              <div style={{ height: 4, background: "#0C1114", borderRadius: 2, marginTop: 4, position: "relative" }}>
+                <div style={{ position: "absolute", left: "50%", top: 0, bottom: 0, width: 1, background: C.line }} />
+                <div style={{
+                  position: "absolute", top: 0, bottom: 0, borderRadius: 2, background: C.anomaly,
+                  opacity: strong ? 0.9 : 0.4,
+                  left: z < 0 ? `${Math.max(0, 50 - Math.min(Math.abs(z), 5) * 10)}%` : "50%",
+                  width: `${Math.min(Math.abs(z), 5) * 10}%`,
+                }} />
+              </div>
+            </div>
+          );
+        })}
+      </Section>
+
+      <Section label="판정">
+        <KV kk="이상 점수" vv={String(a.score)} mono />
+        {threshold !== null && threshold !== undefined && <KV kk="임계값" vv={String(Math.round(threshold * 10000) / 10000)} mono />}
+        <KV kk="구간 길이" vv={`${Math.round(a.end_time - a.start_time)}초`} mono />
+      </Section>
+
+      <div style={{ marginTop: 12, fontFamily: MONO, fontSize: 10, color: C.faint, lineHeight: 1.5, borderTop: `1px solid ${C.line}`, paddingTop: 10 }}>
+        이 구간이 버그라는 뜻이 아니라, 정상 플레이에서 벗어났으니 확인하라는 뜻이다. 판단은 사람이 한다.
+      </div>
+    </div>
+  );
+}
+
+// 이상탐지 특징의 한글 이름이다. 서버의 qa/anomaly.py 와 같은 키를 쓴다.
+const ANOMALY_LABEL = {
+  attack_ratio: "발사 비율",
+  health_lost_rate: "체력 손실률",
+  health_ratio: "체력 유지율",
+};
 
 function Section({ label, children }) {
   return (

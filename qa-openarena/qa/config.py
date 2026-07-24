@@ -26,6 +26,8 @@ from .telemetry import MapBounds
 from .invariants import InvariantChecker
 from .aggregate import BugAggregator
 from .features import FeatureExtractor
+from .anomaly import ActivityExtractor, AnomalyModel
+from .watchdog import Watchdog
 
 # ── 맵 경계 ────────────────────────────────────────────────────────────────
 # tools/calibrate_bounds.py 로 정상 플레이 텔레메트리에서 산출한 값이다.
@@ -91,8 +93,99 @@ WINDOW_SECONDS = 5.0
 WINDOW_STEP_SECONDS = 1.0
 
 
+# ── 이상탐지(②) ────────────────────────────────────────────────────────────
+# 활동 창의 길이(초). 실측으로 정한 값이다.
+#
+# 근거: 봇 실력을 최저로 낮춘 시험 데이터에서 창 길이별 탐지율이 이렇게 나왔다
+# (정상 대조군 / 실력 최저).  5초 8.6%/4.4%,  15초 9.5%/22.4%,  30초 12.1%/64.6%,
+# 60초 9.1%/95.2%.  짧은 창으로는 잡히지 않는 이유는 차이가 창 하나가 아니라 분포에 있기
+# 때문이다. 정상 플레이에도 5초 동안 한 발도 안 쏘는 창은 흔하다.
+ACTIVITY_WINDOW_SECONDS = 60.0
+
+# 활동 창을 옮기는 간격(초). 창 길이의 1/6이라 창이 겹친다.
+# 겹치면 이상 구간의 시작을 이 간격 단위로 짚을 수 있다.
+ACTIVITY_STEP_SECONDS = 10.0
+
+# 활동 창 하나가 성립하기 위한 최소 표본 수.
+# 20Hz에서 60초면 1200프레임이므로, 기록이 끊겨 절반 이하만 남은 창은 버린다.
+ACTIVITY_MIN_SAMPLES = 480
+
+# 이상 판정 임계값을 정하는 백분위. 학습 데이터의 이 비율이 이상으로 잡히는 선을 임계값으로
+# 삼는다. sklearn 의 contamination='auto' 는 데이터에 맞춰 눈금을 매기지 않고 고정 오프셋을
+# 쓰므로 오탐률을 통제할 수 없어 쓰지 않는다. 상세는 qa/anomaly.py 의 AnomalyModel 설명 참조.
+ANOMALY_PERCENTILE = 5.0
+
+# 학습된 모델을 저장할 기본 경로다.
+ANOMALY_MODEL_PATH = "models/anomaly.joblib"
+
+
+# ── 성능/크래시 워치독(③) ──────────────────────────────────────────────────
+# 서버 프레임 주기(초)와 목표 틱. 2026-07-23 실측에서 봇별 연속 기록 간격이 0.050초로
+# 100% 균일했고 초당 20.0프레임이 역산됐다. sv_fps 를 바꾸면 이 값도 함께 고쳐야 한다.
+SERVER_FRAME_PERIOD = 0.05
+TARGET_TICK = 20.0
+
+# 실효 틱을 평균 낼 구간(초). 폴링 간격이 1초이고 파일 쓰기가 뭉쳐 도착할 수 있어,
+# 한 번의 관측만으로는 값이 크게 흔들린다.
+WATCHDOG_SMOOTH_SECONDS = 5.0
+
+# 실효 틱이 목표 대비 이 비율 아래로 떨어지면 성능 저하로 본다.
+#
+# 근거(2026-07-23 실측, tools/measure_perf.py): 정상 플레이 71개 표본에서
+#   최소 18.60(0.930)  중앙값 19.90(0.995)  최대 21.40  표준편차 0.419
+# 이 환경에서 서버 틱은 목표를 안정적으로 유지한다. 관측된 최저가 0.930이므로
+# 0.85는 정상 흔들림보다 확실히 아래이면서 여유가 있다.
+#
+# 왜 처음 값(0.75)에서 올렸는가: 틱은 5초 평균이라 짧은 멈칫이 희석된다. 실제 멈춤 시간과
+# 비율의 관계는 0.5초→0.90, 0.75초→0.85, 1.25초→0.75, 2초→0.60 이다. 0.75로 두면
+# 1.25초 넘게 멈춰야 잡히는데, 그보다 짧은 멈칫도 QA 대상이다. 0.85면 0.75초부터 잡히고
+# 정상 최저(0.930)와는 여전히 여유가 있다.
+#
+# 한계: 표본 71개는 약 71초 분량이다. 더 무거운 조건에서 오래 재면 최저가 더 내려갈 수 있다.
+# 오탐이 잦아지면 이 값을 다시 재서 낮춘다.
+WATCHDOG_TICK_RATIO_ALERT = 0.85
+
+# 텔레메트리가 이 시간(초) 이상 들어오지 않으면 멈춘 것으로 본다.
+# 맵 로딩에도 잠깐 멈추므로 그보다 넉넉해야 한다.
+# 이 값은 아직 실측 근거가 없다. 맵 로딩이 실제로 몇 초 걸리는지 재서 정하는 것이 옳다.
+WATCHDOG_STALL_SECONDS = 5.0
+
+# 게임 프로세스를 찾을 때 이름에 포함되어야 하는 문자열이다.
+WATCHDOG_PROCESS_HINT = "openarena"
+
+
+def build_watchdog(process_hint: str = None) -> Watchdog:
+    """공용 설정으로 워치독을 만든다. process_hint 를 주면 기본값 대신 그것을 쓴다."""
+    return Watchdog(
+        frame_period=SERVER_FRAME_PERIOD,
+        target_tick=TARGET_TICK,
+        smooth_seconds=WATCHDOG_SMOOTH_SECONDS,
+        tick_ratio_alert=WATCHDOG_TICK_RATIO_ALERT,
+        stall_seconds=WATCHDOG_STALL_SECONDS,
+        process_hint=process_hint or WATCHDOG_PROCESS_HINT,
+    )
+
+
+def build_activity_extractor() -> ActivityExtractor:
+    """공용 설정으로 활동 창 추출기를 만든다."""
+    return ActivityExtractor(
+        window_seconds=ACTIVITY_WINDOW_SECONDS,
+        step_seconds=ACTIVITY_STEP_SECONDS,
+        min_samples=ACTIVITY_MIN_SAMPLES,
+    )
+
+
+def build_anomaly_model() -> AnomalyModel:
+    """공용 설정으로 (아직 학습되지 않은) 이상탐지 모델을 만든다."""
+    return AnomalyModel(percentile=ANOMALY_PERCENTILE)
+
+
 def build_extractor() -> FeatureExtractor:
-    """공용 설정으로 윈도우 특징 추출기를 만든다."""
+    """공용 설정으로 이동 특징 추출기를 만든다.
+
+    주의: 이동 특징은 현재 이상탐지 오라클에서 쓰지 않는다. 60초 척도에서 노이즈로
+    작동함이 실측으로 확인됐다(정상 세션끼리 18.8% 오탐). 분석 도구에서만 사용한다.
+    """
     return FeatureExtractor(
         window_seconds=WINDOW_SECONDS,
         step_seconds=WINDOW_STEP_SECONDS,
@@ -143,4 +236,10 @@ def as_dict() -> dict:
         "floor_margin": FLOOR_MARGIN,
         "bounds_margin": BOUNDS_MARGIN,
         "gap_seconds": GAP_SECONDS,
+        "activity_window_seconds": ACTIVITY_WINDOW_SECONDS,
+        "activity_step_seconds": ACTIVITY_STEP_SECONDS,
+        "anomaly_percentile": ANOMALY_PERCENTILE,
+        "target_tick": TARGET_TICK,
+        "watchdog_tick_ratio_alert": WATCHDOG_TICK_RATIO_ALERT,
+        "watchdog_stall_seconds": WATCHDOG_STALL_SECONDS,
     }

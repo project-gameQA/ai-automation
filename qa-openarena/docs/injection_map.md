@@ -80,8 +80,22 @@
 1. OpenArena 0.8.8을 설치한다(게임 데이터+엔진, 아키텍처 무관).
 2. `git clone https://github.com/OpenArena/gamecode` 로 게임 소스를 받는다.
 3. `windows_scripts\windows_compile_game.bat`를 실행한다. 동봉된 `lcc.exe`/`q3cpp.exe`/`q3rcc.exe`/`q3asm.exe`가 게임 C 소스를 `qagame.qvm`으로 컴파일해 `windows\baseoa\vm\`에 넣는다. (필요 시 `windows_compile_cgame.bat`, `windows_compile_q3_ui.bat`도 실행한다.)
-4. 생성된 `vm\*.qvm`을 `oax.pk3`로 묶는다(동봉된 `zip.exe` 또는 `git-bash-compile.bash` 사용).
-5. `oax.pk3`(또는 loose `vm\qagame.qvm`)를 OA 설치 폴더의 `oax` 모드 폴더에 넣고, `+set fs_game oax +set sv_pure 0`으로 실행한다. baseoa에 직접 넣을 경우 pk3 로드 순서 때문에 이름을 뒤로 정렬되게(예: `zzz-oax.pk3`) 지어 기본 pak을 덮어쓰게 한다.
+4. ~~생성된 `vm\*.qvm`을 `oax.pk3`로 묶는다(동봉된 `zip.exe` 또는 `git-bash-compile.bash` 사용).~~ `[제거 2026-07-24: 실제로는 pk3로 묶지 않았다]`
+5. ~~`oax.pk3`(또는 loose `vm\qagame.qvm`)를 OA 설치 폴더의 `oax` 모드 폴더에 넣고, `+set fs_game oax +set sv_pure 0`으로 실행한다. baseoa에 직접 넣을 경우 pk3 로드 순서 때문에 이름을 뒤로 정렬되게(예: `zzz-oax.pk3`) 지어 기본 pak을 덮어쓰게 한다.~~ `[제거 2026-07-24: 모드 폴더 이름과 배포 방식이 실제와 다르다]`
+
+`[추가 2026-07-24]` **실제로 채택한 방식**은 다음과 같다. 위 4~5번은 일반 OAX 배포 절차를 그대로 옮긴 것이라 실제 사용 방식과 어긋난 채 남아 있었다.
+
+4. 생성된 `vm\*.qvm`을 **pk3로 묶지 않고** 모드 폴더에 그대로 둔다.
+
+       C:\game\openarena-0.8.8\qa\vm\qagame.qvm
+                                    \cgame.qvm
+                                    \ui.qvm
+
+5. `+set fs_game qa +set sv_pure 0`으로 실행한다. 모드 폴더 이름이 `oax`가 아니라 `qa`이며, `sv_pure 0`이 loose 파일 로드를 허용하므로 pk3로 묶을 필요가 없다.
+
+**최초 1회만 세 모듈을 모두 빌드하고, 이후에는 `qagame`만 재빌드해 덮어쓴다.** 계측과 주입기는 전부 qagame에만 들어가므로 `cgame`·`ui`는 건드릴 일이 없다. 이 반복 작업은 배치 파일로 자동화했다.
+
+전체 세팅 절차(게임 설치부터 파이썬·프론트엔드 환경까지)는 **`docs/setup.md`**에 따로 정리했다. 이 문서는 주입 지점 지도이므로, 처음 세팅하는 경우 그쪽을 본다.
 
 결함 주입·계측 시: 위 2절의 주입 지점(`g_active.c`의 `ClientThink_real`, `g_main.c`의 cvar 테이블)을 수정하고 3~5절을 다시 수행한다. QVM에서는 파일 입출력을 직접 할 수 없으므로, 텔레메트리 출력은 엔진 syscall(`trap_FS_FOpenFileByMode`/`trap_FS_Write`)이나 콘솔/로그를 통한다.
 
@@ -92,3 +106,4 @@
 ## 6. 변경 이력
 - 2026-07-20: 문서 최초 작성. ioquake3 upstream에서 확인한 주입 지점 맵과 Windows 빌드 요약을 기록했다.
 - 2026-07-20: 빌드·적용 방식을 네이티브 DLL(MinGW)에서 QVM 모드(OA gamecode, OAX)로 변경했다. 구 방식은 5-A에 취소선으로 보존하고, 신 방식을 5-B에 추가했다.
+- 2026-07-24: 5-B의 4~5번이 일반 OAX 배포 절차(`fs_game oax`, pk3 묶기) 그대로였고 실제 사용 방식(`fs_game qa`, loose 파일, qagame만 재빌드)과 어긋나 있어 정정했다. 전체 세팅 절차는 `docs/setup.md`로 분리했다.
