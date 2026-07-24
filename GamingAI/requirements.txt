@@ -1,0 +1,10 @@
+mss
+opencv-python
+numpy
+pywin32
+psutil
+imagehash
+Pillow
+pytesseract
+google-genai
+tzdata
