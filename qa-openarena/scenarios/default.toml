@@ -1,0 +1,92 @@
+# 기본 시나리오 — 정상 플레이 (이상탐지의 '정상'을 정의하는 조건)
+#
+# 이상탐지(②) 모델의 학습 데이터와 대조군을 뽑는 조건이다. 다른 시나리오들은 이 조건에서
+# 한 가지씩만 바꾼 것이라, 여기서 무엇을 고치면 나머지 전부의 기준선이 함께 움직인다.
+#
+# 쓸 수 있는 항목 전체와 각각의 의미는 docs/scenario.md 에 있다.
+
+name = "정상 플레이 (봇 8마리)"
+
+# 이 조건이 이상탐지의 '정상'이 된다. baseline 에서는 결함 주입을 켤 수 없다(도구가 막는다).
+purpose = "baseline"
+
+notes = """
+이상탐지 학습·대조군용 조건이다. 주입기를 모두 끄고 돌린다.
+여기서 뽑은 텔레메트리로 tools/train_anomaly.py 를 실행한다.
+학습에 쓴 세션과 채점할 세션의 조건이 같아야 하므로, 이 파일을 고치면 모델을 다시 학습한다.
+"""
+
+[match]
+# qa/config.py 의 경계값(BOUNDS)과 MAX_SPEED 는 이 맵에서 보정한 값이다. 맵을 바꾸면
+# tools/calibrate_bounds.py 로 다시 보정해야 경계 이탈이 정상 플레이에도 쏟아지지 않는다.
+map = "oa_rpg3dm2"
+
+# ffa, tournament, single, team, ctf 중 하나를 쓰거나 g_gametype 번호를 숫자로 적는다.
+gametype = "ffa"
+
+# 서버가 받을 최대 인원이다. 봇 수보다 커야 한다(사람이 한 자리를 쓴다).
+maxclients = 16
+
+# 둘 다 0으로 둔다. 0이 아니면 매치가 끝나면서 게임이 텔레메트리 파일을 새로 열어
+# 그 판의 기록이 사라지고, 점수판 구간이 이상탐지 오탐이 된다.
+fraglimit = 0
+timelimit = 0
+
+[roster]
+# 봇은 아래 [[roster.bots]] 에 하나씩 적는다. 이름을 직접 적으면 설치본 조사가 실패해도
+# 그대로 동작한다. 설치본에 어떤 봇이 있는지는 아래로 확인하며, 게임의
+# Multiplayer > Add Bot 메뉴에서도 볼 수 있다.
+#
+#     python tools/apply_scenario.py --list --game "C:\game\openarena-0.8.8"
+#
+# 이름 대신 마릿수만 적고 싶으면 count = 8 처럼 쓴다. 그 경우 부족한 만큼을 설치본에서
+# 자동으로 채우므로 조사가 성공해야 한다.
+
+# 봇 실력이다. [[roster.bots]] 에서 생략한 봇과 자동으로 채운 봇에 적용된다.
+#
+# 중요: 이 값은 **이상탐지 모델을 학습한 세션의 봇 실력과 같아야 한다.** 모델이 배운 '정상'은
+# 학습 세션의 조건이므로, 실력이 다르면 정상 플레이인데도 이상으로 판정된다. 기존 모델을
+# 그대로 쓴다면 그때의 값을 여기에 적고, 값을 모르면 이 조건으로 다시 학습하는 편이 확실하다.
+skill = 3
+
+# 봇이 빠져나갔을 때 서버가 자동으로 다시 채울지 여부다. 오래 돌리는 학습용 세션에서는
+# 인원이 유지되는 편이 낫지만, 보충된 봇의 실력은 g_spSkill 하나로 정해진다는 점에 주의한다.
+keep_filled = false
+
+[[roster.bots]]
+name = "Ayumi"
+
+[[roster.bots]]
+name = "Jenna"
+
+[[roster.bots]]
+name = "Skelebot"
+
+[[roster.bots]]
+name = "Grunt"
+
+[[roster.bots]]
+name = "Merman"
+
+[[roster.bots]]
+name = "Kyonshi"
+
+# 여기부터 둘은 앞의 이름을 다시 쓴 것이다. 같은 이름을 여러 번 적어도 되며, 게임은 같은
+# 캐릭터를 여러 마리 넣는다. 텔레메트리는 이름이 아니라 엔티티 번호로 봇을 구분하므로
+# 검출·집계·이상탐지 어디에도 영향이 없다.
+[[roster.bots]]
+name = "Ayumi"
+
+[[roster.bots]]
+name = "Jenna"
+
+[player]
+# 사람은 관전만 한다. 결함 주입기가 아직 봇 한정이 아니라 사람에게도 걸리기 때문이다.
+spectator = true
+
+[inject]
+# 학습 데이터에 비정상이 섞이면 그것을 정상으로 배운다. 전부 꺼 둔다.
+health = false
+oob = false
+fall = false
+stuck = false

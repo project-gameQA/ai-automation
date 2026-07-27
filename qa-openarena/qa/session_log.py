@@ -17,6 +17,17 @@
 - `session_<시각>.jsonl`            : 사건 목록(한 줄에 하나)
 - `session_<시각>.summary.json`     : 세션 요약과 그때 사용한 검출 설정값
 - `session_<시각>.telemetry.jsonl`  : 그 세션 동안 읽은 텔레메트리 원본 사본
+- `session_<시각>.watchdog.jsonl`   : 워치독 관측 기록(초당 한 줄)
+
+리포트는 세션 폴더가 아니라 별도 폴더(`reports/`)에 `report_<시각>.html` 로 나간다. 세션
+폴더는 기계가 읽는 원자료가 쌓이는 곳이고 리포트는 사람이 여는 것이라, 섞여 있으면 원하는
+파일을 고르기 번거롭다.
+
+워치독 관측을 남기는 이유:
+텔레메트리에는 실제 시각이 없다. 게임은 서버 프레임마다 `level.time` 을 고정 간격으로 올리므로
+그 값으로는 서버가 실제로 몇 초에 몇 프레임을 돌았는지 알 수 없다. 실효 틱은 서버가 폴링할 때
+**실제 시각과 비교해서** 얻는 값이라, 그때 기록해 두지 않으면 나중에 어떤 방법으로도 다시 낼 수
+없다. 텔레메트리 사본과 같은 이유로 보관 대상이다.
 
 원본 사본을 남기는 이유:
 게임은 맵이 로드될 때마다 텔레메트리 파일을 FS_WRITE 로 새로 열어 이전 내용을 지운다.
@@ -45,15 +56,32 @@ class SessionLog:
     """한 세션 동안의 버그 사건을 파일에 기록한다."""
 
     def __init__(self, directory: str, session_id: Optional[str] = None,
-                 archive_telemetry: bool = True) -> None:
+                 archive_telemetry: bool = True, report_dir: Optional[str] = None) -> None:
         # 세션 식별자는 시작 시각으로 만든다. 사람이 파일 이름만 보고 언제 것인지 알 수 있어야 한다.
         self.session_id = session_id or time.strftime("%Y%m%d_%H%M%S")
         self.directory = Path(directory)
         self.directory.mkdir(parents=True, exist_ok=True)  # 폴더가 없으면 만든다.
 
+        # 식별자가 초 단위라 세션이 같은 초 안에 두 번 시작하면 이름이 겹친다. 파일을 덧붙이기
+        # 모드로 열기 때문에 겹치면 **두 세션이 한 파일에 조용히 섞인다.** 데이터가 사라지는 것도
+        # 아니고 오류가 나는 것도 아니라 나중에 알아채기가 매우 어렵다. 정상 운용(세션 길이 분
+        # 단위)에서는 일어나지 않지만, 수동 내보내기 뒤에 곧바로 리셋을 누르면 걸린다.
+        # 이미 쓰인 식별자면 뒤에 번호를 붙여 피한다.
+        if session_id is None:
+            base, n = self.session_id, 2
+            while (self.directory / f"session_{self.session_id}.jsonl").exists():
+                self.session_id = f"{base}_{n}"
+                n += 1
+
         self.events_path = self.directory / f"session_{self.session_id}.jsonl"
         self.summary_path = self.directory / f"session_{self.session_id}.summary.json"
         self.telemetry_path = self.directory / f"session_{self.session_id}.telemetry.jsonl"
+        self.watchdog_path = self.directory / f"session_{self.session_id}.watchdog.jsonl"
+
+        # 리포트는 사람이 여는 파일이라 세션 폴더와 나눈다. 폴더를 안 주면 만들지 않는다.
+        self.report_dir = Path(report_dir) if report_dir else None
+        self.report_path = (self.report_dir / f"report_{self.session_id}.html"
+                            if self.report_dir else None)
 
         self.started_at = time.time()  # 세션이 시작된 실제 시각(요약에 남긴다)
         self.written = 0               # 지금까지 파일에 쓴 사건 수
@@ -64,6 +92,9 @@ class SessionLog:
         # 텔레메트리 사본은 첫 바이트가 들어올 때 연다. 미리 열면 데이터가 한 줄도 없는
         # 세션에도 0바이트 파일이 생겨 폴더가 지저분해진다.
         self._telemetry_file = None
+        # 워치독 기록도 첫 관측이 들어올 때 연다. 게임을 켜지 않은 세션에 빈 파일을 만들지 않는다.
+        self._watchdog_file = None
+        self.watchdog_written = 0
 
     def archive(self, chunk: bytes) -> None:
         """서버가 읽은 텔레메트리 바이트를 사본에 그대로 덧붙인다.
@@ -80,6 +111,27 @@ class SessionLog:
         # 사건과 달리 텔레메트리는 초당 수십 KB가 흐르므로 매번 flush 하면 낭비다.
         # 파일을 닫을 때와 운영체제의 버퍼 정책에 맡기고, 여기서는 쓰기만 한다.
         self.archived_bytes += len(chunk)
+
+    def append_watchdog(self, record: dict) -> None:
+        """워치독 관측 한 줄을 파일에 덧붙인다.
+
+        사건과 마찬가지로 매번 flush 한다. 초당 한 줄이라 비용이 없고, 이 값은 프로세스가
+        죽으면 다시 만들 수 없기 때문이다. 크래시를 잡으려는 시스템이 정작 크래시 직전의
+        성능 기록을 잃으면 앞뒤가 맞지 않는다.
+        """
+        if self._watchdog_file is None:
+            self._watchdog_file = open(self.watchdog_path, "a", encoding="utf-8")
+        self._watchdog_file.write(json.dumps(record, ensure_ascii=False) + "\n")
+        self._watchdog_file.flush()
+        self.watchdog_written += 1
+
+    def write_report(self, html: str) -> Optional[str]:
+        """리포트 HTML 을 파일로 쓴다. 폴더를 지정하지 않았으면 아무것도 하지 않는다."""
+        if self.report_path is None:
+            return None
+        self.report_dir.mkdir(parents=True, exist_ok=True)
+        self.report_path.write_text(html, encoding="utf-8")
+        return str(self.report_path)
 
     def append_event(self, event) -> None:
         """닫힌 사건 하나를 파일에 한 줄로 덧붙인다.
@@ -114,6 +166,7 @@ class SessionLog:
         payload["events_file"] = self.events_path.name
         # 사본이 실제로 만들어졌을 때만 요약에 적는다. 없는 파일을 가리키면 안 된다.
         payload["telemetry_file"] = self.telemetry_path.name if self._telemetry_file else None
+        payload["watchdog_file"] = self.watchdog_path.name if self._watchdog_file else None
         payload["telemetry_bytes"] = self.archived_bytes
         payload["started_at"] = self.started_at
         payload["ended_at"] = time.time()
@@ -128,3 +181,5 @@ class SessionLog:
             self._file.close()
         if self._telemetry_file is not None and not self._telemetry_file.closed:
             self._telemetry_file.close()
+        if self._watchdog_file is not None and not self._watchdog_file.closed:
+            self._watchdog_file.close()

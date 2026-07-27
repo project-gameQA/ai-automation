@@ -1,0 +1,113 @@
+{
+  "reason": "manual_export",
+  "telemetry": "C:\\Users\\human\\AppData\\Roaming\\OpenArena\\qa\\qa_telemetry.jsonl",
+  "samples_processed": 68745,
+  "raw_detections": 0,
+  "events_total": 0,
+  "anomaly_windows_scored": 296,
+  "anomaly_count": 30,
+  "watchdog_alerts": 0,
+  "events_by_rule": {},
+  "last_game_time": 429.75,
+  "config": {
+    "bounds": {
+      "min_x": -852,
+      "max_x": 1721,
+      "min_y": -483,
+      "max_y": 2097,
+      "floor_z": -29,
+      "ceiling_z": 622
+    },
+    "max_speed": 1214,
+    "stuck_seconds": 2.0,
+    "stuck_epsilon": 2.0,
+    "max_possible_health": 250,
+    "floor_margin": 5.0,
+    "bounds_margin": 5.0,
+    "gap_seconds": 0.5,
+    "activity_window_seconds": 60.0,
+    "activity_step_seconds": 10.0,
+    "anomaly_percentile": 5.0,
+    "target_tick": 20.0,
+    "watchdog_tick_ratio_alert": 0.85,
+    "watchdog_stall_seconds": 5.0
+  },
+  "scenario": {
+    "name": "정상 플레이 (봇 8마리)",
+    "notes": "이상탐지 학습·대조군용 조건이다. 주입기를 모두 끄고 돌린다.\n여기서 뽑은 텔레메트리로 tools/train_anomaly.py 를 실행한다.\n학습에 쓴 세션과 채점할 세션의 조건이 같아야 하므로, 이 파일을 고치면 모델을 다시 학습한다.\n",
+    "purpose": "baseline",
+    "source": "scenarios\\default.toml",
+    "match": {
+      "map": "oa_rpg3dm2",
+      "gametype": 0,
+      "maxclients": 16,
+      "fraglimit": 0,
+      "timelimit": 0,
+      "warmup": 0
+    },
+    "roster": {
+      "bots": [
+        {
+          "name": "Ayumi",
+          "skill": 3.0,
+          "team": "free"
+        },
+        {
+          "name": "Jenna",
+          "skill": 3.0,
+          "team": "free"
+        },
+        {
+          "name": "Skelebot",
+          "skill": 3.0,
+          "team": "free"
+        },
+        {
+          "name": "Grunt",
+          "skill": 3.0,
+          "team": "free"
+        },
+        {
+          "name": "Merman",
+          "skill": 3.0,
+          "team": "free"
+        },
+        {
+          "name": "Kyonshi",
+          "skill": 3.0,
+          "team": "free"
+        },
+        {
+          "name": "Ayumi",
+          "skill": 3.0,
+          "team": "free"
+        },
+        {
+          "name": "Jenna",
+          "skill": 3.0,
+          "team": "free"
+        }
+      ],
+      "keep_filled": false,
+      "spawn_stagger_ms": 250
+    },
+    "cvars": {},
+    "inject": {
+      "health": false,
+      "oob": false,
+      "fall": false,
+      "stuck": false
+    },
+    "keys": {},
+    "spectator": true
+  },
+  "anomaly_threshold": -0.5590211335583474,
+  "session_id": "20260727_173033",
+  "events_file": "session_20260727_173033.jsonl",
+  "telemetry_file": "session_20260727_173033.telemetry.jsonl",
+  "watchdog_file": "session_20260727_173033.watchdog.jsonl",
+  "telemetry_bytes": 15028224,
+  "started_at": 1785141033.0955515,
+  "ended_at": 1785141462.500397,
+  "events_written": 0
+}

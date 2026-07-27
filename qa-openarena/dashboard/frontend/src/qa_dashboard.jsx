@@ -264,7 +264,10 @@ export default function QADashboard() {
       // 내보내기는 방금 마감한 세션의 경로를, 새 세션은 previous 안에 이전 세션 경로를 돌려준다.
       const done = data.events_file ? data : (data.previous || {});
       const parts = [];
-      if (done.events_file) parts.push(done.events_file);
+      // 리포트를 먼저 알린다. 사람이 실제로 여는 파일이 그것이고, 사건 파일과 텔레메트리
+      // 사본은 도구가 읽는 원자료다. 파일 이름만 보여도 어디에 생겼는지 알 수 있어야 한다.
+      if (done.report_file) parts.push(`리포트 ${done.report_file.split(/[\\/]/).pop()}`);
+      if (done.events_file) parts.push(done.events_file.split(/[\\/]/).pop());
       // 텔레메트리 사본이 남았으면 함께 알린다. 원본은 맵 전환 때 지워지므로 이쪽이 원본 역할을 한다.
       if (done.telemetry_bytes) parts.push(`텔레메트리 사본 ${bytes(done.telemetry_bytes)}`);
       setNotice(parts.length ? `${label} 완료 · ${parts.join(" · ")}` : `${label} 완료`);

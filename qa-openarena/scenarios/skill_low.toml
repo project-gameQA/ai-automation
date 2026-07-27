@@ -1,0 +1,65 @@
+# 봇 실력 최저 — 이상탐지(②) 양성 검증
+#
+# 이 조건이 왜 시험지로 쓸 만한지는 README '설계에서 배운 것' 에 적혀 있다. 물리 파라미터를
+# 흔드는 방법은 약하면 봇이 적응해 행동이 그대로이고 강하면 하드 규칙이 먼저 잡아 버려,
+# 이상탐지만 잡는 지대가 거의 없었다. 봇 실력 하향은 정확히 그 지대에 있다.
+# 하드 인바리언트는 0건인데 이상탐지가 100% 잡는다.
+
+name = "봇 실력 최저"
+
+# 시험지다. 여기서 나오는 이상 판정은 게임의 버그가 아니라 조건이 기준과 다르다는 신호이며,
+# 반응하는 것이 정상이다. 이 구분이 세션 요약에 함께 기록된다.
+purpose = "probe"
+
+notes = """
+이상탐지 오라클의 양성 검증용이다. 규칙을 하나도 어기지 않는데 활동이 정상에서 벗어난다.
+주 원인 특징은 발사 비율이며 정상 대비 -4.0 ~ -5.0 표준편차로 나온다.
+default.toml 에서 봇 실력만 바꾼 것이다. 다른 조건이 함께 달라지면 원인을 실력으로 돌릴 수 없다.
+"""
+
+[match]
+map = "oa_rpg3dm2"
+gametype = "ffa"
+maxclients = 16
+fraglimit = 0
+timelimit = 0
+
+[roster]
+# default.toml 과 다른 것은 이 한 줄뿐이다. 나머지 조건이 함께 달라지면 원인을 실력으로
+# 돌릴 수 없으므로 봇 목록도 default.toml 과 같게 유지한다.
+skill = 1
+
+[[roster.bots]]
+name = "Ayumi"
+
+[[roster.bots]]
+name = "Jenna"
+
+[[roster.bots]]
+name = "Skelebot"
+
+[[roster.bots]]
+name = "Grunt"
+
+[[roster.bots]]
+name = "Merman"
+
+[[roster.bots]]
+name = "Kyonshi"
+
+# 여기부터 둘은 앞의 이름을 다시 쓴 것이다. 같은 이름을 여러 번 적어도 되며, 게임은 같은
+# 캐릭터를 여러 마리 넣는다. 텔레메트리는 이름이 아니라 엔티티 번호로 봇을 구분하므로
+# 검출·집계·이상탐지 어디에도 영향이 없다.
+[[roster.bots]]
+name = "Ayumi"
+
+[[roster.bots]]
+name = "Jenna"
+
+[player]
+spectator = true
+
+[cvars]
+# addbot 으로 준 실력은 봇마다 스폰 시점에 붙지만, g_spSkill 은 서버가 임의로 봇을 보충할 때
+# 쓰는 값이다. 두 값을 맞춰 두면 어떤 경로로 들어온 봇이든 실력이 같다.
+g_spSkill = 1

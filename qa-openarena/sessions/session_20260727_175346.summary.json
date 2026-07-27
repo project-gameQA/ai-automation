@@ -1,0 +1,112 @@
+{
+  "reason": "manual_export",
+  "telemetry": "C:\\Users\\human\\AppData\\Roaming\\OpenArena\\qa\\qa_telemetry.jsonl",
+  "samples_processed": 72599,
+  "raw_detections": 1015,
+  "events_total": 6,
+  "anomaly_windows_scored": 320,
+  "anomaly_count": 320,
+  "watchdog_alerts": 0,
+  "events_by_rule": {
+    "stuck": 6
+  },
+  "last_game_time": 455.350006,
+  "config": {
+    "bounds": {
+      "min_x": -852,
+      "max_x": 1721,
+      "min_y": -483,
+      "max_y": 2097,
+      "floor_z": -29,
+      "ceiling_z": 622
+    },
+    "max_speed": 1214,
+    "stuck_seconds": 2.0,
+    "stuck_epsilon": 2.0,
+    "max_possible_health": 250,
+    "floor_margin": 5.0,
+    "bounds_margin": 5.0,
+    "gap_seconds": 0.5,
+    "activity_window_seconds": 60.0,
+    "activity_step_seconds": 10.0,
+    "anomaly_percentile": 5.0,
+    "target_tick": 20.0,
+    "watchdog_tick_ratio_alert": 0.85,
+    "watchdog_stall_seconds": 5.0
+  },
+  "scenario": {
+    "name": "봇 실력 최저",
+    "notes": "이상탐지 오라클의 양성 검증용이다. 규칙을 하나도 어기지 않는데 활동이 정상에서 벗어난다.\n주 원인 특징은 발사 비율이며 정상 대비 -4.0 ~ -5.0 표준편차로 나온다.\ndefault.toml 에서 봇 실력만 바꾼 것이다. 다른 조건이 함께 달라지면 원인을 실력으로 돌릴 수 없다.\n",
+    "purpose": "probe",
+    "source": "scenarios\\skill_low.toml",
+    "match": {
+      "map": "oa_rpg3dm2",
+      "gametype": 0,
+      "maxclients": 16,
+      "fraglimit": 0,
+      "timelimit": 0,
+      "warmup": 0
+    },
+    "roster": {
+      "bots": [
+        {
+          "name": "Ayumi",
+          "skill": 1.0,
+          "team": "free"
+        },
+        {
+          "name": "Jenna",
+          "skill": 1.0,
+          "team": "free"
+        },
+        {
+          "name": "Skelebot",
+          "skill": 1.0,
+          "team": "free"
+        },
+        {
+          "name": "Grunt",
+          "skill": 1.0,
+          "team": "free"
+        },
+        {
+          "name": "Merman",
+          "skill": 1.0,
+          "team": "free"
+        },
+        {
+          "name": "Kyonshi",
+          "skill": 1.0,
+          "team": "free"
+        },
+        {
+          "name": "Ayumi",
+          "skill": 1.0,
+          "team": "free"
+        },
+        {
+          "name": "Jenna",
+          "skill": 1.0,
+          "team": "free"
+        }
+      ],
+      "keep_filled": false,
+      "spawn_stagger_ms": 250
+    },
+    "cvars": {
+      "g_spSkill": 1
+    },
+    "inject": {},
+    "keys": {},
+    "spectator": true
+  },
+  "anomaly_threshold": -0.5651708126984507,
+  "session_id": "20260727_175346",
+  "events_file": "session_20260727_175346.jsonl",
+  "telemetry_file": "session_20260727_175346.telemetry.jsonl",
+  "watchdog_file": "session_20260727_175346.watchdog.jsonl",
+  "telemetry_bytes": 15859712,
+  "started_at": 1785142426.710951,
+  "ended_at": 1785142880.7441938,
+  "events_written": 6
+}

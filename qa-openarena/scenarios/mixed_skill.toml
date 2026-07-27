@@ -1,0 +1,64 @@
+# 봇별 실력 지정 — 이름을 하나씩 적는 방식
+#
+# [roster] count 로 채우면 모든 봇의 실력이 같다. 봇마다 다르게 주려면 아래처럼 하나씩 적는다.
+#
+# 봇 이름은 설치본과 모드에 따라 다르다. 확인은 이렇게 한다.
+#
+#     python tools/apply_scenario.py --list --game "C:\game\openarena-0.8.8"
+#
+# 없는 이름을 적으면 게임은 콘솔에 한 줄만 남기고 그 봇을 조용히 건너뛴다. 그래서 도구가
+# cfg 를 만들기 전에 설치본과 대조해 막는다.
+
+name = "실력 혼합 (5/3/1)"
+
+# 시험지다. 봇 실력이 기준 조건과 다르므로 이상탐지가 반응하는 것이 정상이다.
+purpose = "probe"
+
+notes = """
+실력이 섞였을 때 이상탐지가 어떻게 반응하는지 보려는 조건이다.
+세션 전체의 발사 비율 평균은 기준에 가깝지만 봇별로는 크게 갈린다.
+이상탐지 창은 봇 단위로 만들어지므로 실력이 낮은 봇의 창만 이상으로 잡히는 것이 예상 동작이다.
+그렇게 나오면 이 오라클이 세션 평균이 아니라 개체를 보고 있다는 근거가 된다.
+"""
+
+[match]
+map = "oa_rpg3dm2"
+gametype = "ffa"
+maxclients = 16
+fraglimit = 0
+timelimit = 0
+
+[roster]
+# 아래 [[roster.bots]] 에서 생략한 값의 기본값이다.
+skill = 3
+team = "free"
+
+# 봇을 한 프레임에 몰아 스폰시키면 서버가 순간적으로 밀린다. 한 마리씩 이 간격(밀리초)을 둔다.
+spawn_stagger_ms = 250
+
+[[roster.bots]]
+name = "Ayumi"
+skill = 5
+
+[[roster.bots]]
+name = "Jenna"
+skill = 5
+
+[[roster.bots]]
+name = "Skelebot"
+skill = 3
+
+[[roster.bots]]
+name = "Grunt"
+skill = 3
+
+[[roster.bots]]
+name = "Merman"
+skill = 1
+
+[[roster.bots]]
+name = "Kyonshi"
+skill = 1
+
+[player]
+spectator = true

@@ -1,0 +1,55 @@
+# 끼임 주입 — 하드 인바리언트(①) 양성 검증
+#
+# 매치를 켜자마자 주입된 상태로 시작하는 것이 아니라, 시연 중에 키로 켜고 끄는 구성이다.
+# 정상 구간과 주입 구간이 한 세션 안에 함께 있어야 "규칙이 정상은 통과시키고 주입만 잡는다"를
+# 한 화면에서 보일 수 있기 때문이다.
+#
+# cfg 로는 '몇 초 뒤에 켜기'를 할 수 없다. 이유와 자동화 방법은 docs/scenario.md 9절을 본다.
+
+name = "끼임 주입 (키로 토글)"
+
+# 시험지다. 주입을 켠 구간에서는 봇이 멈춰 발사 비율이 0이 되므로 이상탐지도 함께 반응한다.
+# 그것은 오탐이 아니라 조건이 기준과 달라졌다는 신호다.
+purpose = "probe"
+
+notes = """
+F5 로 켜고 F6 으로 끈다. 켜면 봇이 제자리에 고정되지만 이동 입력은 계속 나가므로,
+'이동 입력이 있는데 위치가 변하지 않음' 조건이 성립해 stuck 규칙이 잡는다.
+"""
+
+[match]
+map = "oa_rpg3dm2"
+gametype = "ffa"
+maxclients = 16
+fraglimit = 0
+timelimit = 0
+
+[roster]
+# 시연에서는 화면에 봇이 적어야 어느 봇이 멈췄는지 눈으로 따라갈 수 있다.
+skill = 3
+
+[[roster.bots]]
+name = "Ayumi"
+
+[[roster.bots]]
+name = "Skelebot"
+
+[[roster.bots]]
+name = "Merman"
+
+[[roster.bots]]
+name = "Kyonshi"
+
+[player]
+spectator = true
+
+[inject]
+# 시작은 정상 상태로 둔다. 주입은 아래 키로 켠다.
+stuck = false
+
+[keys]
+# 매치 도중에 조건을 바꾸는 유일한 방법이다. 게임 창에 포커스를 두고 누른다.
+F5 = "qa_inject_stuck 1"
+F6 = "qa_inject_stuck 0"
+F7 = "qa_inject_health 1"
+F8 = "qa_inject_health 0"
