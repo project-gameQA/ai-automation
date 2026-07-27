@@ -16,14 +16,18 @@ def new_resume_toggle(ui):
     ui.newOrResumeWindow.setCurrentIndex(0 if is_new_mode(ui) else 1)
 
 def open_game_file_dialog(self):
-    """ 게임 파일 탐색기 열기 """
-    file_dialog = QFileDialog(self)
-    file_dialog.setFileMode(QFileDialog.FileMode.ExistingFile)
-    file_dialog.setNameFilter("Game Files (*.mp4);;All Files (*)")
+    """ 세션(로그) 폴더 탐색기 열기 """
+    # file_dialog = QFileDialog(self)
+    # file_dialog.setFileMode(QFileDialog.FileMode.ExistingFile)
+    # file_dialog.setNameFilter("Game Files (*.mp4);;All Files (*)")
     
-    if file_dialog.exec():
-        selected_file = file_dialog.selectedFiles()[0]
-        self.gameFileRoute.setText(selected_file)  # 선택한 파일 경로를 텍스트 박스에 표시
+    # if file_dialog.exec():
+    #     selected_file = file_dialog.selectedFiles()[0]
+    #     self.gameFileRoute.setText(selected_file)  # 선택한 파일 경로를 텍스트 박스에 표시
+    dir_path = QFileDialog.getExistingDirectory(
+        self, "세션 폴더 선택")
+    if dir_path:
+        self.gameFileRoute.setText(dir_path)
 
 def open_txt_file_dialog(self):
     """ 텍스트 파일 탐색기 열기 """
@@ -37,13 +41,18 @@ def open_txt_file_dialog(self):
 
 def open_qa_file_dialog(self):
     """ QA 파일 탐색기 열기 """
-    file_dialog = QFileDialog(self)
-    file_dialog.setFileMode(QFileDialog.FileMode.ExistingFile)
-    file_dialog.setNameFilter("QA Files (*.json);;All Files (*)")
+    # file_dialog = QFileDialog(self)
+    # file_dialog.setFileMode(QFileDialog.FileMode.ExistingFile)
+    # file_dialog.setNameFilter("QA Files (*.json);;All Files (*)")
     
-    if file_dialog.exec():
-        selected_file = file_dialog.selectedFiles()[0]
-        self.QAFileRoute.setText(selected_file)  # 선택한 파일 경로를 텍스트 박스에 표시
+    # if file_dialog.exec():
+    #     selected_file = file_dialog.selectedFiles()[0]
+    #     self.QAFileRoute.setText(selected_file)  # 선택한 파일 경로를 텍스트 박스에 표시
+
+    dir_path = QFileDialog.getExistingDirectory(
+        self, "세션 폴더 선택")
+    if dir_path:
+        self.QAFileRoute.setText(dir_path)
 
 def check_path(self, line_edit, expected_ext=None):
     """ 경로 유효성을 검사 """
@@ -61,6 +70,17 @@ def check_path(self, line_edit, expected_ext=None):
     line_edit.setStyleSheet("")
     return True
 
+def check_session_dir(self, dir_path):
+    """세션 폴더에 필수 파일이 있는지 확인"""
+    required = ["events.jsonl", "perf.csv", "summary.json"]
+    missing = [f for f in required
+               if not os.path.exists(os.path.join(dir_path, f))]
+    if missing:
+        QMessageBox.warning(self, "파일 누락",
+            f"세션 폴더에 다음 파일이 없습니다:\n{', '.join(missing)}")
+        return False
+    return True
+
 def qa_reset_next(self):
     """ 기존 QA파일을 처음부터 다시 테스트할지, 아니면 이어서 테스트할지 선택하는 토글 """
     if self.btnReset.isChecked():
@@ -74,20 +94,20 @@ def get_keep_going(ui):
     return "reset" if ui.btnReset.isChecked() else "next"
     
 def go_dashboard(self):
-    """ QA 대시보드 화면으로 이동 및 check_path() """
+    """ QA 대시보드 화면으로 이동 및 check_session_dir()(돌려놔야되면 check_path()) """
 
     if is_new_mode(self): # new모드일때
-        if not check_path(self, self.gameFileRoute, expected_ext=".mp4"): # 게임경로
+        if not check_session_dir(self, self.gameFileRoute): # 게임경로
             return # 통과 못하면 멈춰
-        if not check_path(self, self.txtFileRoute, expected_ext=".txt"): # 문서경로
-            return
+        # if not check_session_dir(self, self.txtFileRoute, expected_ext=".txt"): # 문서경로
+        #     return
 
         self.final_config = config_finish(self)
         self.step = 0
         self.found_error = [] 
         self.current_save_path = None
     else: # resume모드일때
-        if not check_path(self, self.QAFileRoute, expected_ext=".json"): # qa파일경로
+        if not check_session_dir(self, self.QAFileRoute): # qa파일경로
             return
         
         ckpt = self.QAFileRoute.text()
