@@ -27,12 +27,18 @@ class QAUIapp(QMainWindow, QtStyleTools):
         self.setMinimumSize(self.minimumSizeHint()) # 최소 창 크기
 
         # 초기화
-        self.is_saved = True # 저장돼있나용?
-        self.step = 0 # 몇번째인가용
-        self.found_error = [] # 어떤에러를 찾았나용
-        self.final_config = "" # 파일 기본정보는용
-        self.session = None      
-        self.state = thread.RunState.IDLE # 쓰레드 상태 어떠세용
+        self.worker = None
+        self.state = thread.RunState.IDLE
+        self.found_error = []        # 표준형 에러 항목 리스트
+        self.report_cache = {}
+        self.current_save_path = None
+        self.prev_is_complete = False
+        self.is_saved = True
+        self.has_log = False
+        self.session_dir = ""        # 테스트 중인 세션 폴더 (절대경로)
+        self.session_summary = {}    # summary.json에서 읽은 요약
+        self.event_cursor = 0        # events.jsonl을 몇 줄까지 읽었나
+        self.event_total = 0         # events.jsonl 총 줄 수
 
         qa_flow.restore_qa_result(self)
         self.stackedWidget.setCurrentWidget(self.start_window) 
@@ -48,22 +54,21 @@ class QAUIapp(QMainWindow, QtStyleTools):
     
         self.btnGoDashbord.clicked.connect(lambda: logic.go_dashboard(self)) # 대시보드로 이동
         self.btnStartQA.clicked.connect(self.toggle_qa_test) # QA 시작 버튼 클릭 시 QA 테스트 시작(QThread)
-        self.btnGoDashbord.clicked.connect(lambda: logic.update_file_route(self)) # 파일 경로를 UI에 띄움
+        # self.btnGoDashbord.clicked.connect(lambda: logic.update_file_route(self)) # 파일 경로를 UI에 띄움
 
-        self.errorReportHistory.addItems(self.report_cache.keys()) # 데이터 삽입
+        # self.errorReportHistory.addItems(self.report_cache.keys()) # 데이터 삽입
         
         # 리스트에서 특정 항목(item)이 '클릭'되면 -> show_error_detail 함수 실행해!
         self.errorReportHistory.itemClicked.connect(lambda item:qa_flow.show_error_detail(self, item))
 
-       
         # 메뉴바 애들 ~~~
         self.actionsplash_screen.triggered.connect(lambda: menu_bar.splash_screen(self)) # 딴거 시작하고 싶을때 첫 화면으로
         self.actionopen_new_window.triggered.connect(self.open_new_window) # 새 창 열기
-        self.actionexport.triggered.connect(lambda: menu_bar.export_file(self)) # 다른 이름으로 저장
+        self.actionexport.triggered.connect(lambda: menu_bar.export_file(self)) # 문서파일로 엑스포트
         self.actionsave.triggered.connect(lambda: menu_bar.save(self)) # 저장
-        self.actionsave_as.triggered.connect(lambda: menu_bar.save_as(self))
+        self.actionsave_as.triggered.connect(lambda: menu_bar.save_as(self)) # 다른 이름으로 저장
         self.actionclose.triggered.connect(self.close) # 프로그램 종료
-        self.actionFind.triggered.connect(lambda: menu_bar.open_search(self))
+        self.actionFind.triggered.connect(lambda: menu_bar.open_search(self)) # ctrl+f
 
         # 에러 추가 팝업+거기서 저장하면 히스토리로 감
         self.actionerror_plus.triggered.connect(lambda: menu_bar.open_error_plus_popup(self))
@@ -74,10 +79,10 @@ class QAUIapp(QMainWindow, QtStyleTools):
         [▶ QA 시작] 버튼을 누르면 QA 및 QThread 실행
         [▶ QA 종료] 버튼을 누르면 QA 및 QThread 종료
         """
-        if not self.state == thread.RunState.RUNNING: # 시작 안함            
-            qa_flow.qa_start(self)
-        else: # 시작함
+        if self.state == thread.RunState.RUNNING: # 하고있음 
             qa_flow.qa_stop(self)
+        else: # 안하고있음
+            qa_flow.qa_start(self)
 
     def open_new_window(self):
         """
