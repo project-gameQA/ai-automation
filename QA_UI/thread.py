@@ -4,6 +4,7 @@ import time
 from PyQt6.QtCore import QThread, pyqtSignal
 import logic, menu_bar
 from enum import Enum, auto
+import random
 
 class QAWorker(QThread):
     """
@@ -26,47 +27,68 @@ class QAWorker(QThread):
     def run(self):
         self.working = True  # QAWorker(QThread) 실행 플래그
         self.log_signal.emit("🚀 파일(영상) 분석 테스트를 시작합니다...")
-        
         start_time = time.time()
         
         while True:
-            if not self.working: # 유저가 테스트 중지함
-                self.log_signal.emit("🛑 사용자가 테스트를 중지했습니다. 대기 상태로 돌아갑니다.")
-                self.finished_signal.emit(False)
-                return
-            
-            if self.step >= self.max_steps: # 유저가 설정한 최대 스텝 도달
+            # -------- 출구들 ---------
+            if not self.working:
+                break # 중지 요청
+            if self.step >= self.max_steps:
                 self.log_signal.emit(f"✅ 최대 스텝({self.max_steps}) 도달 — 세션 종료")
                 break
-
-            if time.time() - start_time > self.max_duration: # 유저가 설정한 제한 시간 도달
+            if time.time() - start_time > self.max_duration:
                 self.log_signal.emit("✅ 제한 시간 도달 — 세션 종료")
                 break
-                
-            # 일하는 척(백엔드팀 함수 호출 예정)
-            self.log_signal.emit("🚀 시연용 게임(test.exe) 실행 중...")
-            time.sleep(1) 
-            self.log_signal.emit("📸 게임 화면 캡처 및 로그 수집 중...")
-            time.sleep(1) 
-            self.log_signal.emit("🤖 수집된 데이터 AI 분석 진행 중...")
-            time.sleep(1) 
 
-            # 가짜로 찾아낸 AI 에러 리포트 (나중에 백엔드팀 함수이름넣을거고 지금은 더미)
-            dummy_result = {
-                "title": f"[UI/시각] 상점 진입 시 골드 텍스트 겹침 { self.step }",
-                "content": "Expected: 상점 팝업 중앙 정상 출력\nActual: 폰트 깨짐 및 10% 우측 치우침 발생."
-            }
-            
+            # ── 스텝 실행 (백엔드팀 함수로 교체 예정) ──
+            self.log_signal.emit("🚀 시연용 게임(test.exe) 실행 중...")
+            if not self.wait_interruptible(1): break
+            self.log_signal.emit("📸 게임 화면 캡처 및 로그 수집 중...")
+            if not self.wait_interruptible(1): break
+            self.log_signal.emit("🤖 수집된 데이터 AI 분석 진행 중...")
+            if not self.wait_interruptible(1): break
+
+            # ── 스텝 완료, +1 ──
             self.step += 1
-            print(f"[worker] step={self.step}")
             self.step_signal.emit(self.step)
-            
-            self.log_signal.emit("✅ AI 분석 완료! 결과를 대시보드에 띄웁니다.")
-            self.error_signal.emit(dummy_result, self.step)
-            
+
+            # ── 판정: 에러가 있을 때만 리포트 ──
+            result = self.analyze()
+            if result is None:
+                self.log_signal.emit(f"✅ 스텝 {self.step} 통과 — 이상 없음")
+            else:
+                self.log_signal.emit(f"⚠️ 스텝 {self.step} 에러 검출")
+                self.error_signal.emit(result, self.step)   
         
-        self.log_signal.emit(f"✅ 입력된 영상(파일)의 분석을 모두 마쳤습니다! ({self.step}턴 종료)")
+        if self.working:
+            self.log_signal.emit(f"✅ 분석을 모두 마쳤습니다! ({self.step}턴 종료)")
+        else:
+            self.log_signal.emit("🛑 사용자가 테스트를 중지했습니다.")
+
         self.finished_signal.emit(self.working) # 완료 신호
+
+    def wait_interruptible(self, seconds):
+        """0.1초씩 나눠 자면서 중지 요청을 확인.
+        스텝 실행 중에도 반응하게 만드는 게 목적.
+        나중에 로딩 같은거 기다릴때 사용할듯?
+        Return: 정상 완료면 True, 중지 요청 받으면 False"""
+        for _ in range(int(seconds * 10)):
+            if not self.working:
+                return False
+            self.msleep(100)
+        return True
+
+    def analyze(self):
+        """더미 판정. 나중에 AI 분석 함수로 교체.
+        에러 있으면 dict, 없으면 None"""
+        if random.random() < 0.3:      # 30% 확률로 에러
+            return {
+                "title": f"[UI/시각] 상점 진입 시 골드 텍스트 겹침 {self.step}",
+                "content": 
+                    "Expected: 상점 팝업 중앙 정상 출력\n"
+                    "Actual: 폰트 깨짐 및 10% 우측 치우침 발생."
+            }
+        return None
 
 def on_qa_finished(ui, ok):   # finished_signal 연결
     """ qa가 일시중지 되면 finished_signal에 던져줄 것들"""
@@ -76,6 +98,7 @@ def on_qa_finished(ui, ok):   # finished_signal 연결
     ui.state = RunState.DONE if ok else RunState.PAUSED
     ui.btnStartQA.setText("▶ QA 시작")
     ui.btnStartQA.setStyleSheet("")
+    ui.btnStartQA.setEnabled(not ok) # 완주했으면 잠금
 
     if getattr(ui, 'keep_record', True): # qa_stop()에서 기록 남긴다 했을때
         if ui.current_save_path:
@@ -93,6 +116,8 @@ def shutdown_worker(ui):
         if ui.worker.isRunning():     # 그래도 안 죽으면
             ui.worker.terminate()     # 강제 (최후수단)
             ui.worker.wait()
+
+
 
 class RunState(Enum):
     """

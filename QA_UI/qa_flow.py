@@ -120,20 +120,20 @@ def qa_start(ui):
 
 def qa_stop(ui):
     """ QAWorker(QThread) 종료 """
+    if ui.worker is None or not ui.worker.isRunning():
+        print("[stop] 워커가 돌고 있지 않음")
+        return
+    
     reply = QMessageBox.question(
         ui, '테스트 중지',
         '진행 중인 테스트를 중지합니다.\n여기까지의 기록을 남길까요?',
         QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
     
     ui.keep_record = (reply == QMessageBox.StandardButton.Yes)
-    working = ui.worker.isRunning() if hasattr(ui, 'worker') else None
-    print(f"[stop] 호출됨 | ui.step={ui.step} | hasattr={hasattr(ui,'worker')} | isRunning={working}")
 
-    # 퇴근 플래그
-    if hasattr(ui, 'worker') and ui.worker.isRunning():
-        # hasattr == self에 worker가 있으면 True, 없으면 False
-        ui.worker.working = False # 워커 퇴근
-        ui.is_paused = True # 일시중지임
-        print(f"[main] 중지 시점 ui.step={ui.step}")
+    ui.worker.working = False    # 워커 퇴근 요청
 
-    print("🛑 사용자가 테스트를 강제 중지했습니다!")
+    # ③ 즉시 피드백. 실제 종료는 현재 스텝이 끝난 뒤
+    ui.btnStartQA.setText("⏹ 중단하는 중...")
+    ui.btnStartQA.setEnabled(False)
+    print(f"[stop] 중지 요청 | ui.step={ui.step}")

@@ -81,33 +81,41 @@ def go_dashboard(self):
             return # 통과 못하면 멈춰
         if not check_path(self, self.txtFileRoute, expected_ext=".txt"): # 문서경로
             return
+
+        self.final_config = config_finish(self)
+        self.step = 0
+        self.found_error = [] 
+        self.current_save_path = None
     else: # resume모드일때
         if not check_path(self, self.QAFileRoute, expected_ext=".json"): # qa파일경로
             return
+        
+        ckpt = self.QAFileRoute.text()
+        step, found_error, is_complete, saved_config = load_checkpoint(ckpt)
 
-    self.final_config = config_finish(self)
+        if not saved_config.get("game_file"):
+            QMessageBox.warning(self, "파일 오류",
+                "이 QA 파일에는 게임/문서 경로 정보가 없습니다.\n"
+                "새 테스트로 시작해 주세요.")
+            return
 
-    # ── 3) 세션 데이터 준비 ──
-    if (self.final_config["mode"] == "resume"
-            and self.final_config["keep_going"] == "next"):
-        # 이어하기: 체크포인트에서 이전 상태 복원
-        ckpt = self.final_config["qa_file"]
-        step, found_error, is_complete, config = load_checkpoint(ckpt)
+        self.final_config = config_finish(self, saved_config)   # 조립은 위임
 
-        self.step = step
-        self.found_error = found_error
-        self.prev_is_complete = is_complete
-        self.current_save_path = ckpt      # 읽은 파일 = 앞으로 저장할 파일
-        print(f"[enter] 이어하기 step={step}")
-    else:
-        # 새 테스트 / reset: 처음부터
-        self.step = 0
-        self.found_error = []
-        self.current_save_path = None
-        print("[enter] 새 테스트 step=0")
+        if self.final_config["keep_going"] == "next": # 이어하기
+            self.step = step
+            self.found_error = found_error
+            self.prev_is_complete = is_complete
+            self.current_save_path = ckpt
+            print(f"[enter] 이어하기 step={step}")
+        else: # 처음부터
+            self.step = 0
+            self.found_error = []
+            self.current_save_path = None
+            print("[enter] 새 테스트 step=0")
 
     self.state = thread.RunState.IDLE
-    qa_flow.restore_qa_result(self)     
+    qa_flow.restore_qa_result(self) # 화면 세팅(초기화를 하든 전에걸 불러오든)
+    update_file_route(self) # 테스트 경로 세팅
 
     self.stackedWidget.setCurrentWidget(self.qa_window)  # qa_window으로 이동
 
@@ -121,6 +129,8 @@ def make_config(mode, **kwargs):
     elif mode == "resume":
         config["qa_file"] = kwargs.get("qa_file", "")
         config["keep_going"] = kwargs.get("keep_going", "reset")
+        config["game_file"] = kwargs.get("game_file", "")
+        config["txt_file"] = kwargs.get("txt_file", "")
 
     return config
 
@@ -143,28 +153,28 @@ def check_config(config):
 
     return True, ""
 
-def config_finish(ui):
+def config_finish(ui, saved_config=None):
     """ 
-    QA 시작 버튼을 눌렀을 때 실행되는 함수
-    config 딕셔너리를 최종 완성해서 QThread에 넘김
+    config 딕셔너리 완성.
+    saved_config: resume 모드일 때 체크포인트에서 읽은 원본 config.
+    game_file/txt_file을 여기서 계승받음
     """
     if is_new_mode(ui):
         # '새거' 모드일 때: UI 입력칸에서 글자를 가져옴
-        final_config = make_config(
+        return make_config(
             mode="new",
-            input_game = ui.gameFileRoute.text(),
-            input_txt = ui.txtFileRoute.text()
+            game_file = ui.gameFileRoute.text(),
+            txt_file = ui.txtFileRoute.text(),
         )
-    elif not is_new_mode(ui):
+    return make_config(
         # '기존거' 모드일 때
-        final_config = make_config(
-            mode="resume", 
-            qa_file=ui.QAFileRoute.text(), 
-            keep_going=get_keep_going(ui)
-        )
-
-    print("완성된 설정값:", final_config)
-    return final_config
+        mode="resume",
+        qa_file=ui.QAFileRoute.text(),
+        keep_going=get_keep_going(ui),
+        # 무엇을 테스트하는가 → 체크포인트에서 계승
+        game_file=saved_config["game_file"],
+        txt_file=saved_config["txt_file"],
+    )
 
 def save_checkpoint(ui, qa_path):
     """
@@ -187,7 +197,7 @@ def save_checkpoint(ui, qa_path):
         with open(qa_path, "w", encoding="utf-8") as file:
             json.dump(save_check, file, ensure_ascii=False, indent=4)
     except (OSError, TypeError) as e:
-        # OSError: 권한 없음, 경로 없음 / TypeError: json이 못 담는 타입 섞임
+        # OSError: 권한/경로 없음 | TypeError: json이 못 담는 타입 섞임
         print(f"[save] 저장 실패: {e}")
         ui.is_saved = False
         return False
@@ -222,13 +232,18 @@ def load_checkpoint(qa_path):
         return empty
 
 def update_file_route(ui):
-    """ 파일 경로를 UI에 띄움 """
-    if is_new_mode(ui):
-        game_path = os.path.basename(ui.gameFileRoute.text())
-        txt_path = os.path.basename(ui.txtFileRoute.text())
-        file_path = f"게임: {game_path} | 문서: {txt_path}"
-    else:
-        qa_path = os.path.basename(ui.QAFileRoute.text())
-        file_path = f"QA파일: {qa_path}"
+    """ 테스트 중인 파일 경로를 UI에 띄움 """
+    game_path = ui.final_config["game_file"]
+    txt_path = ui.final_config["txt_file"]
+
+    if ui.final_config["mode"] == "new": # 뉴모드일때
+        file_path = f"게임: {os.path.basename(game_path)} | 문서: {os.path.basename(txt_path)}"
+        ui.filesRoute.setText(file_path)
+        ui.filesRoute.setToolTip(f"게임: {game_path}\n문서: {txt_path}")
+    else: # resume일때
+        qa_path = ui.QAFileRoute.text()
+        file_path = f"게임: {os.path.basename(txt_path)} | 문서: {os.path.basename(txt_path)}"
+        ui.filesRoute.setText(file_path)
+        ui.filesRoute.setToolTip(f"게임: {game_path}\n문서: {txt_path}\nQA파일: {qa_path}")
+
     
-    ui.filesRoute.setText(file_path)

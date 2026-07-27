@@ -57,7 +57,7 @@ QPushButton:checked {
        <string notr="true"/>
       </property>
       <property name="currentIndex">
-       <number>1</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="start_window">
        <property name="styleSheet">
@@ -235,7 +235,7 @@ QLabel{
                   <string notr="true"/>
                  </property>
                  <property name="text">
-                  <string>https://naver.com</string>
+                  <string/>
                  </property>
                 </widget>
                </item>
@@ -1142,11 +1142,11 @@ li.checked::marker { content: &quot;\2612&quot;; }
  <resources/>
  <connections/>
  <buttongroups>
-  <buttongroup name="resetOrNextToggle"/>
   <buttongroup name="newOrResumeToggle">
    <property name="exclusive">
     <bool>true</bool>
    </property>
   </buttongroup>
+  <buttongroup name="resetOrNextToggle"/>
  </buttongroups>
 </ui>
