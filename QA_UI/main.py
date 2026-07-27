@@ -29,14 +29,16 @@ class QAUIapp(QMainWindow, QtStyleTools):
         # 초기화
         self.worker = None
         self.state = thread.RunState.IDLE
-        self.step = 0
-        self.found_error = []
+        self.found_error = []        # 표준형 에러 항목 리스트
         self.report_cache = {}
         self.current_save_path = None
-        self.final_config = None
         self.prev_is_complete = False
         self.is_saved = True
         self.has_log = False
+        self.session_dir = ""        # 테스트 중인 세션 폴더 (절대경로)
+        self.session_summary = {}    # summary.json에서 읽은 요약
+        self.event_cursor = 0        # events.jsonl을 몇 줄까지 읽었나
+        self.event_total = 0         # events.jsonl 총 줄 수
 
         qa_flow.restore_qa_result(self)
         self.stackedWidget.setCurrentWidget(self.start_window) 
@@ -54,7 +56,7 @@ class QAUIapp(QMainWindow, QtStyleTools):
         self.btnStartQA.clicked.connect(self.toggle_qa_test) # QA 시작 버튼 클릭 시 QA 테스트 시작(QThread)
         # self.btnGoDashbord.clicked.connect(lambda: logic.update_file_route(self)) # 파일 경로를 UI에 띄움
 
-        self.errorReportHistory.addItems(self.report_cache.keys()) # 데이터 삽입
+        # self.errorReportHistory.addItems(self.report_cache.keys()) # 데이터 삽입
         
         # 리스트에서 특정 항목(item)이 '클릭'되면 -> show_error_detail 함수 실행해!
         self.errorReportHistory.itemClicked.connect(lambda item:qa_flow.show_error_detail(self, item))

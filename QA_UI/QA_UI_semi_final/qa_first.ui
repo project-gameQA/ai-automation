@@ -941,14 +941,31 @@ li.checked::marker { content: &quot;\2612&quot;; }
     <addaction name="actionclose"/>
     <addaction name="actionexport"/>
    </widget>
+   <widget class="QMenu" name="menu_2">
+    <property name="title">
+     <string>로그</string>
+    </property>
+    <addaction name="actionlog_kakuninn"/>
+    <addaction name="actionerror_plus"/>
+   </widget>
+   <widget class="QMenu" name="menuview">
+    <property name="title">
+     <string>view</string>
+    </property>
+    <addaction name="actionall_log"/>
+    <addaction name="actionsaishin_error_log"/>
+    <addaction name="actiongenzai_log"/>
+    <addaction name="actionscreen_shot"/>
+   </widget>
    <widget class="QMenu" name="menu_3">
     <property name="title">
      <string>기타</string>
     </property>
     <addaction name="actionFind"/>
-    <addaction name="actionError_Plus"/>
    </widget>
    <addaction name="menu"/>
+   <addaction name="menuview"/>
+   <addaction name="menu_2"/>
    <addaction name="menu_3"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
@@ -1132,11 +1149,6 @@ li.checked::marker { content: &quot;\2612&quot;; }
   <action name="actionexport">
    <property name="text">
     <string>export</string>
-   </property>
-  </action>
-  <action name="actionError_Plus">
-   <property name="text">
-    <string>Error Plus</string>
    </property>
   </action>
  </widget>

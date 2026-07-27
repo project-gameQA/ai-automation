@@ -14,9 +14,9 @@ def splash_screen(ui):
         reply = QMessageBox.question(
             ui, "QA 중단",
             "진행 중인 QA가 있습니다. 중단하시겠습니까?",
-            QMessageBox.Yes | QMessageBox.No
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
         )
-        if reply != QMessageBox.Yes:
+        if reply != QMessageBox.StandardButton.Yes:
             return   # 사용자가 취소 → 화면 그대로
 
         # finished_signal 끊기 (아래 ※ 설명 참고)
