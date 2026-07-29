@@ -42,10 +42,8 @@ PRESENTMON_PATH = None
 
 # 환경변수 GEMINI_API_KEY를 먼저 보고, 없으면 여기 직접 넣어도 된다.
 # ⚠️ 여기 키를 적어놓고 깃에 올리지 말 것.
-# GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
-GEMINI_API_KEY = "AIzaSyBZg-h8WcmTq-wnf-im-Lj1Xoe5r9Bc0oQ"
-
-# python main.py run --target "Maze Trials" --mode agent --max-llm-calls 20 --gemini-api-key AIzaSyBZg-h8WcmTq-wnf-im-Lj1Xoe5r9Bc0oQ
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
+# GEMINI_API_KEY = "내키"
 
 # 에이전트를 띄운 뒤 세션 폴더가 생기기를 기다리는 최대 시간(초)
 SESSION_WAIT_TIMEOUT_S = 60

@@ -221,8 +221,12 @@ class QAWorker(QThread):
                 continue
 
             self._queue_log(session_reader.format_log_line(event))
+            try:
+                report = session_reader.classify_event(event)
+            except Exception as e:
+                print(f"[classify_event] seq={event.get('seq')} 처리 중 오류, 건너뜀: {e}")
+                report = None
 
-            report = session_reader.classify_event(event)
             if report is not None:
                 self._flush_logs()   # 에러 앞뒤 로그 순서가 뒤집히지 않게
                 self.error_signal.emit(report, last_shot)
@@ -261,7 +265,7 @@ def on_qa_finished(ui, ok):
     ui.state = RunState.DONE if ok else RunState.PAUSED
     ui.btnStartQA.setText("▶ QA 시작")
     ui.btnStartQA.setStyleSheet("")
-    ui.btnStartQA.setEnabled(not ok) # 완주했으면 다시 못 누르게.. 이걸 어떻게할까 살릴까 지울까?????
+    # ui.btnStartQA.setEnabled(not ok) # 완주했으면 다시 못 누르게.. 이걸 어떻게할까 살릴까 지울까?????
 
     # qa_stop()에서 '기록 남김'을 선택했을 때 저장
     if getattr(ui, "keep_record", True):

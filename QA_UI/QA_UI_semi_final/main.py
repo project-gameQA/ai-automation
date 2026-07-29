@@ -110,6 +110,7 @@ class QAUIapp(QMainWindow, QtStyleTools):
         self.actionclose.triggered.connect(self.close)
         self.actionFind.triggered.connect(lambda: menu_bar.open_search(self))
         self.actionError_plus.triggered.connect(
+            
             lambda: menu_bar.open_error_plus_popup(self))
 
         # 아직 기능이 없는 메뉴는 잠가두기(일단 다 지웟는데 혹시 모르니까)

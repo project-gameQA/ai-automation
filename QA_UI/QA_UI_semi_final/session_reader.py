@@ -286,6 +286,144 @@ def classify_event(event):
             "seq": seq, "ts": ts, "event_type": etype,
         }
 
+# ── 추가한 에러 ────────────────────────────────────
+    if etype == "NULL_VALUE_ERROR":
+        return{
+            "title": f"🔴 [NULL_VALUE_ERROR] NULL값 입력 (seq {seq})",
+            "content": (
+                f"■ 발생 시각: {ts_str}\n"
+                f"■ 심각도: 높음\n"
+                f"■ 분류: {CATEGORY_GAME}\n"
+                f"■ 탐지 방법: {data.get('detection_method', 'is_hung_app_window')}\n"
+                f"----------------------------------------\n"
+                f"■ 상세:\n"
+                f"NULL값이 입력되었습니다.\n"
+                f"뭐라고 더 써야할까요"
+            ),
+            "severity": SEVERITY_HIGH, "category": CATEGORY_GAME,
+            "seq": seq, "ts": ts, "event_type": etype,
+        }
+
+    if etype == "OUT_OF_RANGE":
+        return{
+            "title": f"🔴 [OUT_OF_RANGE] 값의 범위 초과 (seq {seq})",
+            "content": (
+                f"■ 발생 시각: {ts_str}\n"
+                f"■ 심각도: 높음\n"
+                f"■ 분류: {CATEGORY_GAME}\n"
+                f"■ 탐지 방법: {data.get('detection_method', 'is_hung_app_window')}\n"
+                f"----------------------------------------\n"
+                f"■ 상세:\n"
+                f"값의 범위를 넘어갔습니다.\n"
+                f"뭐라고 더 써야할까요"
+            ),
+            "severity": SEVERITY_HIGH, "category": CATEGORY_GAME,
+            "seq": seq, "ts": ts, "event_type": etype,
+        }
+
+    if etype == "UNEXPECTED_VALUE":
+        return{
+            "title": f"🔴 [UNEXPECTED_VALUE] 잘못된 데이터 입력 (seq {seq})",
+            "content": (
+                f"■ 발생 시각: {ts_str}\n"
+                f"■ 심각도: 높음\n"
+                f"■ 분류: {CATEGORY_GAME}\n"
+                f"■ 탐지 방법: {data.get('detection_method', 'is_hung_app_window')}\n"
+                f"----------------------------------------\n"
+                f"■ 상세:\n"
+                f"잘못된 데이터가 입력되었습니다.\n"
+                f"데이터 타입 불일치, 빈 값(null), 또는 JSON 파싱 오류 등의 원인이 있을 수 있습니다."
+            ),
+            "severity": SEVERITY_HIGH, "category": CATEGORY_GAME,
+            "seq": seq, "ts": ts, "event_type": etype,
+        }
+
+    if etype == "MALFORMED_DATA":
+        return{
+            "title": f"🔴 [MALFORMED_DATA] 데이터 형식 오류 (seq {seq})",
+            "content": (
+                f"■ 발생 시각: {ts_str}\n"
+                f"■ 심각도: 높음\n"
+                f"■ 분류: {CATEGORY_GAME}\n"
+                f"■ 탐지 방법: {data.get('detection_method', 'is_hung_app_window')}\n"
+                f"----------------------------------------\n"
+                f"■ 상세:\n"
+                f"데이터 형식이 이상합니다.\n"
+                f"데이터의 형식 오류, 비정형 데이터 입력 등의 이유로 발생합니다."
+            ),
+            "severity": SEVERITY_HIGH, "category": CATEGORY_GAME,
+            "seq": seq, "ts": ts, "event_type": etype,
+        }
+
+    if etype == "INVALID_FORMAT":
+        return{
+            "title": f"🔴 [INVALID_FORMAT] 데이터 서식 오류 (seq {seq})",
+            "content": (
+                f"■ 발생 시각: {ts_str}\n"
+                f"■ 심각도: 높음\n"
+                f"■ 분류: {CATEGORY_GAME}\n"
+                f"■ 탐지 방법: {data.get('detection_method', 'is_hung_app_window')}\n"
+                f"----------------------------------------\n"
+                f"■ 상세:\n"
+                f"데이터 서식이 잘못되었습니다.\n"
+                f"뭐라고 더 써야할까요"
+            ),
+            "severity": SEVERITY_HIGH, "category": CATEGORY_GAME,
+            "seq": seq, "ts": ts, "event_type": etype,
+        }
+
+    if etype == "DATA_CORRUPTION":
+        return{
+            "title": f"🔴 [DATA_CORRUPTION] 데이터 오염 (seq {seq})",
+            "content": (
+                f"■ 발생 시각: {ts_str}\n"
+                f"■ 심각도: 높음\n"
+                f"■ 분류: {CATEGORY_GAME}\n"
+                f"■ 탐지 방법: {data.get('detection_method', 'is_hung_app_window')}\n"
+                f"----------------------------------------\n"
+                f"■ 상세:\n"
+                f"데이터가 오염되었습니다.\n"
+                f"뭐라고 더 써야할까요"
+            ),
+            "severity": SEVERITY_HIGH, "category": CATEGORY_GAME,
+            "seq": seq, "ts": ts, "event_type": etype,
+        }
+
+    if etype == "MISSING_REQUIRED_FIELD":
+        return{
+            "title": f"🔴 [MISSING_REQUIRED_FIELD] 필수 FIELD 부재 (seq {seq})",
+            "content": (
+                f"■ 발생 시각: {ts_str}\n"
+                f"■ 심각도: 높음\n"
+                f"■ 분류: {CATEGORY_GAME}\n"
+                f"■ 탐지 방법: {data.get('detection_method', 'is_hung_app_window')}\n"
+                f"----------------------------------------\n"
+                f"■ 상세:\n"
+                f"필수 필드(field)가 없습니다.\n"
+                f"필드를 확인해주세요."
+            ),
+            "severity": SEVERITY_HIGH, "category": CATEGORY_GAME,
+            "seq": seq, "ts": ts, "event_type": etype,
+        }
+
+    if etype == "TYPE_MISMATCH":
+        return{
+            "title": f"🔴 [TYPE_MISMATCH] 타입 에러 (seq {seq})",
+            "content": (
+                f"■ 발생 시각: {ts_str}\n"
+                f"■ 심각도: 높음\n"
+                f"■ 분류: {CATEGORY_GAME}\n"
+                f"■ 탐지 방법: {data.get('detection_method', 'is_hung_app_window')}\n"
+                f"----------------------------------------\n"
+                f"■ 상세:\n"
+                f"타입이 잘못되었습니다.\n"
+                f"타입을 확인해주세요."
+            ),
+            "severity": SEVERITY_HIGH, "category": CATEGORY_GAME,
+            "seq": seq, "ts": ts, "event_type": etype,
+        }
+
+
     # ── error 이벤트 ──────────────────────────────────────
     # ⚠️ 실제 세션의 error 25건은 전부 Gemini 할당량 초과였다.
     #    이건 게임 버그가 아니라 '우리 도구의 문제'다. 정직하게 분류한다.
