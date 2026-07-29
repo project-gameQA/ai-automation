@@ -4,7 +4,7 @@ thread.py
 QAWorker(QThread) — 세션을 읽어서 UI로 흘려보내는 작업 스레드.
 
 동작 두 가지:
-    replay — 이미 끝난 세션 폴더를 처음부터(또는 중간부터) 읽는다
+    replay — 이미 끝난 세션 폴더를 읽는다
     live   — 에이전트를 실행하고, 생기는 세션 폴더를 실시간으로 따라 읽는다
 
 ⚠️ 이 스레드는 UI 위젯을 절대 직접 건드리지 않는다.
@@ -26,7 +26,7 @@ class RunState(Enum):
     """
     IDLE    = 시작 전
     RUNNING = 진행 중
-    PAUSED  = 중지됨 → 이어하기 가능
+    PAUSED  = 중지 -> 이어하기 가능
     DONE    = 끝까지 완주
     """
     IDLE = auto()
@@ -36,7 +36,7 @@ class RunState(Enum):
 
 
 class QAWorker(QThread):
-    """세션을 읽어 로그/에러/진행률을 시그널로 내보낸다."""
+    """세션을 읽어 로그/에러/진행률을 시그널 보냄"""
 
     # ── 시그널 ────────────────────────────────────────────
     log_signal = pyqtSignal(str)            # 로그 여러 줄(\n으로 연결)
@@ -61,17 +61,16 @@ class QAWorker(QThread):
         self.start_cursor = start_cursor
         self.target_title = target_title
 
-        self.cursor = start_cursor      # 현재까지 읽은 이벤트 수
-        self.agent_proc = None          # live에서 띄운 에이전트 프로세스
+        self.cursor = start_cursor # 현재까지 읽은 이벤트 수
+        self.agent_proc = None # live에서 띄운 에이전트 프로세스
 
         # 로그 묶음 전송용 버퍼
         # (23,570개를 한 줄씩 쏘면 GUI 이벤트 큐가 터진다)
         self._log_buf = []
         self._last_flush = 0.0
-        self._agent_done_at = None      # 에이전트 종료 감지 시각
+        self._agent_done_at = None # 에이전트 종료 감지 시각
 
-    # ── 로그 묶음 전송 ────────────────────────────────────
-
+    # 로그 묶음 전송
     def _log(self, line):
         """단발 메시지. 즉시 보낸다."""
         self._flush_logs()
@@ -93,7 +92,6 @@ class QAWorker(QThread):
         self._log_buf.clear()
         self._last_flush = time.time()
 
-    # ── 중지 판정 ─────────────────────────────────────────
 
     def _should_stop(self):
         """
@@ -115,8 +113,6 @@ class QAWorker(QThread):
                     return True
 
         return False
-
-    # ── 라이브: 에이전트 실행 ─────────────────────────────
 
     def _launch_agent(self):
         """
@@ -164,28 +160,25 @@ class QAWorker(QThread):
         self._log(f"✅ 세션 폴더 확보: {found}")
         return str(found)
 
-    # ── 본체 ──────────────────────────────────────────────
-
     def run(self):
-        """QThread 진입점. 예외가 나도 반드시 finished_signal을 쏜다."""
+        """QThread 본체"""
         self.working = True
         try:
             self._run_body()
         except Exception as e:
-            # 워커 안에서 터진 예외가 조용히 사라지면 원인을 못 찾는다.
-            # 콘솔에 스택을 찍고 로그창에도 남긴다.
+            # 콘솔에 스택 찍고 로그창에도
             traceback.print_exc()
             self._log(f"❌ 오류로 중단되었습니다: {e}")
             self.working = False
         finally:
             self._flush_logs()
-            # 라이브였다면 에이전트도 같이 정리한다
+            # 라이브였으면 에이전트도 같이 보내
             if self.agent_proc is not None:
                 session_reader.stop_agent(self.agent_proc)
             self.finished_signal.emit(self.working)
 
     def _run_body(self):
-        # ── 1) 라이브면 에이전트부터 띄운다 ──
+        # 1) 라이브면 에이전트부터 띄운다
         session_dir = self.session_dir
         if self.mode == "live":
             session_dir = self._launch_agent()
@@ -195,7 +188,7 @@ class QAWorker(QThread):
             self.session_dir = session_dir
             self.session_ready.emit(session_dir)
 
-        # ── 2) 리더 준비 ──
+        # 2) 리더 준비
         reader = session_reader.SessionReader(
             session_dir,
             mode=self.mode,
@@ -203,15 +196,15 @@ class QAWorker(QThread):
             max_sleep_s=settings.REPLAY_MAX_SLEEP_S,
         )
 
-        # replay는 미리 전체 줄 수를 셀 수 있다. live는 계속 자라므로 0.
+        # replay는 몇줄인지 셀 수 있으나 live는 계속 늘어나니까 0
         total = reader.count_total_lines() if self.mode == "replay" else 0
         self.progress_signal.emit(self.cursor, total)
 
-        if self.start_cursor > 0:
+        if self.start_cursor > 0: # 이벤트 갯수가 0이상이면 == live가 아니면
             self._log(f"⏩ 이전 기록에 이어서 {self.start_cursor}번째 이벤트부터 읽습니다")
         self._log("🔍 세션 분석을 시작합니다...")
 
-        # ── 3) 이벤트 스트림 ──
+        # 3) 이벤트 스트림
         # 에러가 났을 때 '그 직전 화면'을 보여주려고 마지막 스크린샷을 따라간다.
         # ⚠️ 에러마다 파일을 다시 훑으면 O(n²)이 된다. 스트림 중에 기억해두면 O(1).
         last_shot = None
@@ -235,15 +228,14 @@ class QAWorker(QThread):
                 self.error_signal.emit(report, last_shot)
 
             self.cursor = n
-            if n % settings.PROGRESS_EVERY == 0:
+            if n % settings.PROGRESS_EVERY == 0: # 진행률 시그널 업뎃
                 self.progress_signal.emit(n, total)
 
         self._flush_logs()
         self.progress_signal.emit(self.cursor, total or self.cursor)
 
-        # ── 4) 성능 데이터 훑기 ──
-        # 이벤트 스트림이 끝난 뒤에 한 번만 돌린다.
-        # perf.csv는 이벤트와 시간축이 달라서 중간에 끼워넣기 어렵다.
+        # 4) 성능 데이터 훑기
+        # 이벤트 스트림이 끝난 뒤에. perf.csv는 이벤트와 시간축이 달라서 중간에 끼워넣기 어렵다네..
         if self.working:
             self._log("📊 성능 데이터를 분석합니다...")
             anomalies = reader.find_perf_anomalies(settings.CPU_SPIKE_THRESHOLD)
@@ -251,7 +243,7 @@ class QAWorker(QThread):
                 self.error_signal.emit(a, None)
             self._log(f"   성능 이상 {len(anomalies)}건")
 
-        # ── 5) 마무리 ──
+        # 5) 마무리
         if self.working:
             self._log(f"✅ 분석 완료 — 이벤트 {self.cursor}개를 확인했습니다.")
         else:
@@ -263,15 +255,15 @@ class QAWorker(QThread):
 # ════════════════════════════════════════════════════════════
 
 def on_qa_finished(ui, ok):
-    """finished_signal에 연결. 워커가 끝났을 때 화면을 정리한다."""
+    """finished_signal에 연결. 워커가 끝났을 때 화면 정리"""
     print(f"[finish] ok={ok} | save_path={ui.current_save_path}")
 
     ui.state = RunState.DONE if ok else RunState.PAUSED
     ui.btnStartQA.setText("▶ QA 시작")
     ui.btnStartQA.setStyleSheet("")
-    ui.btnStartQA.setEnabled(not ok)   # 완주했으면 다시 못 누르게
+    ui.btnStartQA.setEnabled(not ok) # 완주했으면 다시 못 누르게.. 이걸 어떻게할까 살릴까 지울까?????
 
-    # qa_stop()에서 '기록 남김'을 선택했을 때만 저장한다
+    # qa_stop()에서 '기록 남김'을 선택했을 때 저장
     if getattr(ui, "keep_record", True):
         if ui.current_save_path:
             import logic
@@ -280,16 +272,12 @@ def on_qa_finished(ui, ok):
             import menu_bar
             menu_bar.save_as(ui)
 
-    ui.keep_record = True   # 다음을 위해 초기화
-
+    ui.keep_record = True # 다음을 위해 초기화
 
 def shutdown_worker(ui, timeout_ms=5000):
     """
-    워커에게 중지를 요청하고 실제로 끝날 때까지 기다린다.
-    워커가 없거나 안 돌고 있으면 조용히 넘어간다.
-
-    ⚠️ terminate()는 쓰지 않는다.
-       스택을 안 풀고 죽이기 때문에 파일이 반쯤 쓰인 채로 남을 수 있다.
+    워커에게 중지를 요청, 끝날 때까지 대기
+    워커가 없거나 안 돌고 있으면 조용히 넘어감
     """
     worker = getattr(ui, "worker", None)
     if worker is None or not worker.isRunning():

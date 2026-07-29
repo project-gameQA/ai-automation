@@ -19,6 +19,11 @@
   <property name="windowTitle">
    <string>Dialog</string>
   </property>
+  <property name="styleSheet">
+   <string notr="true">QDialog{
+	font: 300 12pt &quot;Pretendard Variable Light&quot;;
+}</string>
+  </property>
   <widget class="QLineEdit" name="searchText">
    <property name="geometry">
     <rect>
@@ -27,6 +32,9 @@
      <width>271</width>
      <height>41</height>
     </rect>
+   </property>
+   <property name="text">
+    <string/>
    </property>
   </widget>
   <widget class="QPushButton" name="btnSearchUp">

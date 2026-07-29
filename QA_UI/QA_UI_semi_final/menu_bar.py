@@ -20,11 +20,6 @@ import logic
 import thread
 import qa_flow
 
-
-# ════════════════════════════════════════════════════════════
-# 1. 첫 화면으로
-# ════════════════════════════════════════════════════════════
-
 def splash_screen(ui):
     """진행 중인 QA가 있으면 물어보고 정리한 뒤 첫 화면으로 돌아간다."""
     if ui.state == thread.RunState.RUNNING:
@@ -34,15 +29,13 @@ def splash_screen(ui):
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
             QMessageBox.StandardButton.No)
         if reply != QMessageBox.StandardButton.Yes:
-            return   # 사용자가 취소 → 화면 그대로
+            return # 사용자가 취소하면 화면 그대로
 
-        # finished_signal을 먼저 끊는다.
-        # 안 끊으면 워커가 끝나면서 on_qa_finished가 돌고,
-        # 방금 초기화한 상태를 다시 저장하려 든다.
-        try:
+        
+        try: # finished_signal을 먼저 끊기
             ui.worker.finished_signal.disconnect()
         except (TypeError, RuntimeError, AttributeError):
-            pass   # 이미 끊겼거나 워커가 없으면 무시
+            pass # 이미 끊겼거나 워커가 없으면 무시
 
         thread.shutdown_worker(ui)
 
@@ -50,55 +43,44 @@ def splash_screen(ui):
     ui.stackedWidget.setCurrentWidget(ui.start_window)
 
 
-# ════════════════════════════════════════════════════════════
-# 2. 저장
-# ════════════════════════════════════════════════════════════
 
+# 저장
 def save(ui):
-    """Ctrl+S. 저장 경로가 이미 있으면 안 묻고 덮어쓴다."""
+    """Ctrl+S"""
     print(f"[save] current_save_path={ui.current_save_path}")
     if not ui.current_save_path:
         return save_as(ui)
     return logic.save_checkpoint(ui, ui.current_save_path)
 
-
 def save_as(ui):
-    """Ctrl+Shift+S. 경로를 새로 받아 저장한다."""
+    """Ctrl+Shift+S"""
     path, _ = QFileDialog.getSaveFileName(
         ui, "저장 위치", "", "QA 파일 (*.json);;모든 파일 (*)")
-    if not path:
-        return False   # 사용자가 취소
+    if not path: # 사용자가 취소
+        return False
 
-    # 확장자를 안 붙였으면 붙여준다
+    # 확장자를 안 붙였으면 붙여주기
     if not path.lower().endswith(".json"):
         path += ".json"
 
     ui.current_save_path = path
     return logic.save_checkpoint(ui, path)
 
-
-# ════════════════════════════════════════════════════════════
-# 3. Export (사람이 읽는 리포트)
-# ════════════════════════════════════════════════════════════
-
 def export_file(ui):
-    """[Export] 텍스트 리포트로 내보낸다."""
+    """사람이 읽을 예쁜 파일로 저장"""
     file_path, _ = QFileDialog.getSaveFileName(
         ui, "Export", "QA_Error_Report.txt",
         "Text Files (*.txt);;모든 파일 (*)")
     if not file_path:
         return False
-
-    # ⚠️ current_save_path(체크포인트 .json)를 건드리지 않는다.
-    #    전에는 여기서 덮어써서, Export 후 Ctrl+S를 누르면
-    #    .txt 파일에 json이 써지면서 리포트가 날아갔다.
+    
     ui.last_export_path = file_path
 
     return write_data_to_file(ui, file_path)
 
 
 def write_data_to_file(ui, path):
-    """실제 파일 쓰기."""
+    """실제 파일 쓰기"""
     summ = ui.session_summary or {}
 
     # 심각도/분류별 집계. 발표 때 "자동 N건, 수동 M건"을 말하기 위한 것.
@@ -159,12 +141,9 @@ def write_data_to_file(ui, path):
     return True
 
 
-# ════════════════════════════════════════════════════════════
-# 4. 종료
-# ════════════════════════════════════════════════════════════
-
+# 종료
 def close_application(ui):
-    """닫아도 되면 True, 취소하면 False."""
+    """닫을거면 True, 취소하면 False."""
     if not getattr(ui, "is_saved", True):
         reply = QMessageBox.warning(
             ui, "저장되지 않은 작업",
@@ -175,13 +154,11 @@ def close_application(ui):
             QMessageBox.StandardButton.Save)
 
         if reply == QMessageBox.StandardButton.Save:
-            # ⚠️ save()를 쓴다. 경로가 없으면 save_as로 넘어간다.
-            #    전에는 save_checkpoint(ui)를 인자 하나로 불러서 TypeError가 났다.
-            if not save(ui):
-                return False   # 저장 실패/취소 → 종료도 취소
+            if not save(ui): # 저장 한대놓고 왜안헤 종료도 안해
+                return False
         elif reply == QMessageBox.StandardButton.Cancel:
             return False
-        # Discard면 그냥 진행
+        # Discard면 그냥 종료
 
     else:
         reply = QMessageBox.question(
@@ -191,62 +168,57 @@ def close_application(ui):
         if reply != QMessageBox.StandardButton.Yes:
             return False
 
-    # ⚠️ ui.worker.working = False 를 직접 쓰면
-    #    QA를 한 번도 안 돌렸을 때 worker가 None이라 AttributeError가 난다.
     thread.shutdown_worker(ui)
     return True
 
 
-# ════════════════════════════════════════════════════════════
-# 5. 검색 (Ctrl+F)
-# ════════════════════════════════════════════════════════════
-
 class SearchDialog(QDialog):
-    """계속 떠 있는 전용 검색창."""
+    """계속 떠 있는 전용 검색창"""
 
     def __init__(self, target_widget, parent=None):
         super().__init__(parent)
         uic.loadUi(settings.ui_path("find_ctrl_f.ui"), self)
         layout = self.layout()
-        if layout is not None:
-            # 레이아웃이 있으면 내용물 크기에 맞춰 창을 고정
+        if layout is not None: # 레이아웃이 있으면 내용물 크기에 맞춰 창을 고정
             layout.setSizeConstraint(QLayout.SizeConstraint.SetFixedSize)
-        else:
-            # 레이아웃이 없으면 .ui에 적힌 크기(317x61) 그대로 고정
+        else: # 레이아웃이 없으면 .ui에 적힌 크기(317x61) 그대로 고정
             self.setFixedSize(self.size())
 
         self.target_widget = target_widget
 
+        # 버튼 눌렀을 때 실행될 기능
         self.btnSearchDown.clicked.connect(self.find_down)
         self.btnSearchUp.clicked.connect(self.find_up)
-        self.searchText.returnPressed.connect(self.find_down)
-
-    def _search(self, backward=False):
-        """찾고, 끝에 닿으면 반대쪽 끝으로 감아서 한 번 더 찾는다."""
-        text = self.searchText.text()
-        if not text:
-            return
-
-        flags = (QTextDocument.FindFlag.FindBackward if backward
-                 else QTextDocument.FindFlag(0))
-
-        if self.target_widget.find(text, flags):
-            return
-
-        # 못 찾았으면 커서를 끝으로 보내고 재시도
-        self.target_widget.moveCursor(
-            QTextCursor.MoveOperation.End if backward
-            else QTextCursor.MoveOperation.Start)
-
-        if not self.target_widget.find(text, flags):
-            QMessageBox.information(self, "검색 결과",
-                                    "일치하는 내용이 없습니다.")
+        self.searchText.returnPressed.connect(self.find_down) # 엔터치면 내려감
 
     def find_down(self):
-        self._search(backward=False)
-
+        """
+        ▼ 버튼 & 엔터
+        """
+        search_text = self.searchText.text()
+        if not search_text: return
+        
+        found = self.target_widget.find(search_text)
+        if not found: # 못찾앗엉
+            self.target_widget.moveCursor(QTextCursor.MoveOperation.Start) # 맨위로가
+            found = self.target_widget.find(search_text) # 거기서부터 다시찾아
+            if not found: # 못찾앗엉222
+                QMessageBox.information(self, "검색 결과", "더 이상 일치하는 내용이 없습니다.")
+    
     def find_up(self):
-        self._search(backward=True)
+        """
+        ▲ 버튼
+        """
+        search_text = self.searchText.text()
+        if not search_text: return
+        
+        # PyQt6 전용 '거꾸로 찾기(FindBackward)' 옵션 적용
+        found = self.target_widget.find(search_text, QTextDocument.FindFlag.FindBackward)
+        if not found: # 못찾앗엉
+            self.target_widget.moveCursor(QTextCursor.MoveOperation.End) # 맨밑으로가
+            found = self.target_widget.find(search_text, QTextDocument.FindFlag.FindBackward) # 거기서부터 다시찾아
+            if not found: # 못찾앗엉222
+                QMessageBox.information(self, "검색 결과", "더 이상 일치하는 내용이 없습니다.")
 
 
 def open_search(ui):
@@ -260,12 +232,9 @@ def open_search(ui):
         QMessageBox.warning(ui, "알림", "검색할 텍스트 창을 먼저 클릭해주세요.")
 
 
-# ════════════════════════════════════════════════════════════
-# 6. 수동 에러 추가
-# ════════════════════════════════════════════════════════════
-
+# 수동 에러 추가
 class ErrorPlusDialog(QDialog):
-    """에러 보고서 수동 추가 팝업."""
+    """에러 보고서 수동 추가 팝업 클래스"""
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -275,27 +244,22 @@ class ErrorPlusDialog(QDialog):
 
 def open_error_plus_popup(ui):
     """
-    사람이 직접 에러를 추가한다.
-
-    ⚠️ 전에는 report_cache에만 넣고 found_error에는 안 넣어서
-       수동으로 추가한 에러가 저장되지 않았다.
-       이제 표준형으로 만들어 found_error에도 넣는다.
+    수동으로 에러 추가하는 팝업. 히스토리에 추가까지
     """
     dialog = ErrorPlusDialog(ui)
     if not dialog.exec():
         return
 
     body = dialog.content.toPlainText().strip()
-    if not body:
-        print("[manual] 내용이 비어있어 저장하지 않음")
+    if not body: # 내용물이 없어
+        print("내용이 비어있어서 저장하지 않습니다.")
         return
 
     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-    # 첫 줄을 제목으로. 너무 길면 자른다.
-    raw_title = body.split("\n")[0]
-    if len(raw_title) > 20:
-        raw_title = raw_title[:20] + "..."
+    raw_title = body.split("\n")[0] # 첫 줄이 제목
+    if len(raw_title) > 15: # 15글자 넘으면 너무 길어 줄여
+        raw_title = raw_title[:15] + "..."
 
     entry = logic.make_error_entry(
         {
@@ -311,13 +275,13 @@ def open_error_plus_popup(ui):
             "severity": session_reader.SEVERITY_MEDIUM,
             "category": session_reader.CATEGORY_GAME,
             "event_type": "manual",
-            "seq": ui.event_cursor,   # 지금 몇 번째 이벤트를 보고 있었는지
+            "seq": ui.event_cursor, # 지금 몇번째 이벤트를 보고 있었는지
         },
         source="manual",
     )
 
     if not ui.found_error:
-        ui.errorReportHistory.clear()   # "아직 없습니다" 안내 제거
+        ui.errorReportHistory.clear() # 에러 없을때 있는 '아직 에러없음' 안내 제거
 
     ui.found_error.append(entry)
     ui.report_cache[entry["title"]] = entry["content"]
@@ -327,4 +291,4 @@ def open_error_plus_popup(ui):
     ui.errorReport.setText(entry["content"])
     ui.is_saved = False
 
-    print("[manual] 새 에러가 히스토리에 추가됨")
+    print("새 에러가 히스토리에 추가되었습니다.")

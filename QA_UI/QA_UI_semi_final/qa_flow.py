@@ -17,7 +17,7 @@ import settings
 import session_reader
 import thread
 import logic
-
+import settings
 
 # ════════════════════════════════════════════════════════════
 # 1. 에러 목록 / 상세
@@ -46,14 +46,12 @@ def add_error_item(ui, entry):
     ui.errorReportHistory.addItem(item)
     return item
 
-
 def show_empty_hint(ui):
     """에러 목록이 비었을 때 안내 항목 하나."""
     item = QListWidgetItem("아직 검출된 에러가 없습니다.")
     item.setFlags(Qt.ItemFlag.NoItemFlags)             # 클릭·선택 안 됨
     item.setData(Qt.ItemDataRole.UserRole, "hint")     # 식별용 꼬리표
     ui.errorReportHistory.addItem(item)
-
 
 def restore_qa_result(ui):
     """
@@ -86,7 +84,6 @@ def restore_qa_result(ui):
     # 마지막 항목을 상세창에 띄워둔다
     ui.errorReport.setText(ui.found_error[-1]["content"])
 
-
 def show_qa_result(ui, report, frame_path=None):
     """
     워커가 보낸 리포트를 표준형으로 바꿔 저장하고 화면에 반영한다.
@@ -104,7 +101,6 @@ def show_qa_result(ui, report, frame_path=None):
     ui.errorReport.setText(build_detail_text(ui, entry))
     ui.is_saved = False
 
-
 def build_detail_text(ui, entry):
     """상세창에 띄울 본문. 스크린샷이 있으면 안내를 덧붙인다."""
     text = entry.get("content", "")
@@ -115,14 +111,12 @@ def build_detail_text(ui, entry):
                  f"   (목록에서 이 항목을 더블클릭하면 이미지가 열립니다)")
     return text
 
-
 def show_error_detail(ui, item):
     """목록에서 항목을 클릭했을 때 상세창을 바꾼다."""
     entry = item.data(Qt.ItemDataRole.UserRole)
     if entry == "hint" or not isinstance(entry, dict):
         return   # 안내 항목 클릭은 무시
     ui.errorReport.setText(build_detail_text(ui, entry))
-
 
 def open_error_frame(ui, item):
     """
@@ -151,7 +145,6 @@ def open_error_frame(ui, item):
 
     QDesktopServices.openUrl(QUrl.fromLocalFile(full))
 
-
 # ════════════════════════════════════════════════════════════
 # 2. 로그 / 진행률
 # ════════════════════════════════════════════════════════════
@@ -168,14 +161,12 @@ def update_realtime_log(ui, message):
         ui.has_log = True
     ui.allLog.append(message)
 
-
 def update_progress(ui, cursor, total):
     """진행률을 상단에 반영한다. progress_signal에 연결된다."""
     ui.event_cursor = cursor
     if total:
         ui.event_total = total
     logic.update_file_route(ui)
-
 
 def on_session_ready(ui, session_dir):
     """
@@ -185,7 +176,6 @@ def on_session_ready(ui, session_dir):
     ui.session_dir = session_dir
     ui.session_summary = logic.load_session_summary(session_dir)
     logic.update_file_route(ui)
-
 
 # ════════════════════════════════════════════════════════════
 # 3. 워커 시작 / 중지
@@ -204,6 +194,7 @@ def qa_start(ui):
     ui.btnStartQA.setText("⏹ QA 중지")
     ui.btnStartQA.setStyleSheet(
         "background-color: #E74C3C; color: white; font-weight: bold;")
+    settings.resize_game_window("GameClient", 1280, 720)
 
     ui.state = thread.RunState.RUNNING
     print(f"[start] mode={ui.source_mode} cursor={ui.event_cursor}")
@@ -225,7 +216,6 @@ def qa_start(ui):
     ui.worker.finished_signal.connect(lambda ok: thread.on_qa_finished(ui, ok))
 
     ui.worker.start()
-
 
 def qa_stop(ui):
     """[⏹ QA 중지] — 워커에게 중지를 요청한다."""

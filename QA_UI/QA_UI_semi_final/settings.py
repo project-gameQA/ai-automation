@@ -1,7 +1,7 @@
 """
 settings.py
 ===========
-경로와 기본값을 한 곳에 모은 파일. (신규)
+경로와 기본값을 한 곳에 모은 파일
 
 왜 만들었나:
     전에는 "D:/project_gameQA/ai-automation/QA_UI/qa_first.ui" 같은
@@ -14,9 +14,10 @@ import os
 
 # ── 경로 ─────────────────────────────────────────────────────
 # __file__ = 이 파일(settings.py)의 경로
-# → 그 폴더가 QA_UI, 그 위가 프로젝트 루트
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))          # .../QA_UI
-PROJECT_ROOT = os.path.dirname(BASE_DIR)                       # .../ai-automation
+# → 그 폴더가 QA_UI_semi_final, 그 위가 QA_UI, 그 위가 프로젝트 루트
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))           # .../QA_UI_semi_final
+QA_UI_DIR = os.path.dirname(BASE_DIR)                           # .../QA_UI
+PROJECT_ROOT = os.path.dirname(QA_UI_DIR)                       # .../ai-automation
 
 # 에이전트(GamingAI)가 있는 곳. 팀원 폴더가 들어오면 여기만 맞추면 된다.
 AGENT_DIR = os.path.join(PROJECT_ROOT, "GamingAI")
@@ -41,11 +42,34 @@ PRESENTMON_PATH = None
 
 # 환경변수 GEMINI_API_KEY를 먼저 보고, 없으면 여기 직접 넣어도 된다.
 # ⚠️ 여기 키를 적어놓고 깃에 올리지 말 것.
-GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
+# GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
+GEMINI_API_KEY = "AIzaSyBZg-h8WcmTq-wnf-im-Lj1Xoe5r9Bc0oQ"
+
+# python main.py run --target "Maze Trials" --mode agent --max-llm-calls 20 --gemini-api-key AIzaSyBZg-h8WcmTq-wnf-im-Lj1Xoe5r9Bc0oQ
 
 # 에이전트를 띄운 뒤 세션 폴더가 생기기를 기다리는 최대 시간(초)
 SESSION_WAIT_TIMEOUT_S = 60
 
+import win32gui
+import win32con
+
+def resize_game_window(window_title, target_w, target_h):
+    """
+    게임 창 이름을 찾아서 강제로 원하는 해상도로 맞춰버리는 함수
+    """
+    # 1. 게임 창의 주민등록번호(HWND) 찾기
+    hwnd = win32gui.FindWindow(None, window_title)
+    
+    if hwnd:
+        # 2. 현재 창이 모니터 어디(x, y)에 있는지 위치 가져오기
+        rect = win32gui.GetWindowRect(hwnd)
+        x, y = rect[0], rect[1]
+        
+        # 3. 위치는 그대로 두고, 가로(target_w) 세로(target_h) 크기만 강제 변경!
+        win32gui.MoveWindow(hwnd, x, y, target_w, target_h, True)
+        print(f"[{window_title}] 창 크기를 {target_w}x{target_h}로 멱살 잡고 조절했습니다!")
+    else:
+        print(f"[{window_title}] 게임 창을 찾을 수 없습니다. 이름이 맞는지 확인하세요.")
 
 # ── 리플레이 재생 속도 ────────────────────────────────────────
 # 원본 세션의 시각 간격을 이 값으로 나눠서 재생한다.

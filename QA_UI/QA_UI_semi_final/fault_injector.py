@@ -122,6 +122,33 @@ def find_process_by_window_title(title_substring):
 
     return found[0][0]
 
+# ────────────────────────────────────────────────────────────
+# 데모 에러 삽입(fault_injector.py)
+# ────────────────────────────────────────────────────────────
+
+from PyQt6.QtWidgets import QMessageBox
+
+# 예시: UI 클래스 내부의 메서드
+def on_btn_demo_clicked(self):
+    target_title = "Maze Trials"
+    pid = find_process_by_window_title(target_title)
+    
+    if not pid:
+        QMessageBox.warning(self, "경고", f"'{target_title}' 게임이 실행되어 있지 않습니다!")
+        return
+
+    # 워커 스레드와 별개로, 게임 프로세스에 직접 결함 주입
+    # UI가 멈추지 않도록 주의 (필요시 이 부분도 별도 스레드로 분리 가능)
+    try:
+        with FaultInjector(pid, on_log=self.log_to_ui) as fi:
+            self.log_to_ui("결함 주입 데모 시작...")
+            fi.hang(8)     # 8초간 응답없음 유발 (높음 심각도)
+            fi.stutter(12) # 성능 저하 유발 (중간 심각도)
+            # fi.crash()   # 크래시는 게임이 완전히 꺼지므로 필요할 때만 주석 해제
+    except Exception as e:
+        self.log_to_ui(f"결함 주입 중 오류 발생: {e}")
+
+
 
 # ────────────────────────────────────────────────────────────
 # 결함 주입기 본체
